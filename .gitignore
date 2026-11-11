@@ -41,5 +41,12 @@ Thumbs.db
 # Agent configuration & skills (local only)
 .agents/
 
+# GitHub Spec Kit
+.specify/
+specs/
+
+# Documentation (local only)
+docs/
+
 # Keys & certificates
 *.pem
