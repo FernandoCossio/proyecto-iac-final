@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Menu, ChevronRight, RefreshCw, Activity, BookOpen } from 'lucide-react';
+import { Menu, ChevronRight, RefreshCw, BookOpen } from 'lucide-react';
 
 export interface BreadcrumbItem {
   label: string;
@@ -85,13 +85,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           </div>
         )}
 
-        {/* Badge de Estado en Vivo del Sistema */}
+        {/* Badge de Estado Institucional */}
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="hidden sm:inline">
-            {isSystemOnline ? 'Sistema Operativo' : 'Sin Conexión'}
-          </span>
-          <Activity className="w-3 h-3 sm:hidden text-emerald-600" />
+          <span>Vigente</span>
         </div>
 
         {/* Botón de Sincronización Manual */}

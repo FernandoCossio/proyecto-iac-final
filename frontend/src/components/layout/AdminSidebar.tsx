@@ -169,26 +169,28 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </button>
         </div>
 
-        {/* Tarjeta Contextual del Módulo Activo (visible en expanded / móvil) */}
-        <div className="p-3 border-b border-slate-800/80 hidden lg:block">
-          <div className="rounded-lg bg-slate-800/70 border border-slate-700/60 p-2.5">
-            <div className="flex items-center justify-between gap-1 mb-1">
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <BookOpen className="w-3 h-3 text-indigo-400" />
-                Módulo Activo
-              </span>
-              <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-bold rounded-sm bg-emerald-950 text-emerald-400 border border-emerald-800/60">
-                EN CURSO
-              </span>
-            </div>
-            <div className="text-xs font-bold text-white truncate" title={activeModule?.name || 'Módulo Académico'}>
-              {activeModule?.name || 'Cargando módulo...'}
-            </div>
+        {/* Contexto del Módulo Activo (integrado, sobrio y de alta densidad) */}
+        <div className="px-3 py-2.5 mx-2.5 my-2 rounded-lg bg-slate-950/40 border border-slate-800/80 hidden lg:block">
+          <div className="flex items-center justify-between gap-1 mb-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+              Ciclo Académico
+            </span>
             {activeModule?.code && (
-              <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                Cód: {activeModule.code}
-              </div>
+              <span className="font-mono text-[9px] font-bold text-slate-300 bg-slate-800/90 px-1.5 py-0.5 rounded border border-slate-700/60">
+                {activeModule.code}
+              </span>
             )}
+          </div>
+          <div
+            className="text-xs font-semibold text-slate-200 truncate"
+            title={activeModule?.name || 'Módulo Académico'}
+          >
+            {activeModule?.name || 'Cargando módulo...'}
+          </div>
+          <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-emerald-400 font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="text-slate-400">Estado:</span>
+            <span className="font-semibold text-emerald-400">Oficial en curso</span>
           </div>
         </div>
 

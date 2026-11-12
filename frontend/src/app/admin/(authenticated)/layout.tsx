@@ -21,7 +21,6 @@ export default function AdminAuthenticatedLayout({
   const [activeModule, setActiveModule] = useState<any>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // 1. Cargar sesión y verificar autenticación
   const loadSession = useCallback(() => {
@@ -29,12 +28,11 @@ export default function AdminAuthenticatedLayout({
     const storedUser = authService.getStoredUser();
 
     if (!token) {
-      router.push(`/admin/login?redirect=${encodeURIComponent(pathname)}`);
+      router.replace(`/admin/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 
     setUser(storedUser);
-    setIsCheckingAuth(false);
 
     // Cargar módulo activo
     ModuleImportService.getActiveModule(token)
@@ -101,17 +99,6 @@ export default function AdminAuthenticatedLayout({
       setTimeout(() => setIsSyncing(false), 600);
     }
   };
-
-  if (isCheckingAuth) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-medium text-slate-400">Verificando sesión administrativa...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50/60 text-slate-900 flex">
