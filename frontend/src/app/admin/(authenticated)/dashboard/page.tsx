@@ -159,19 +159,11 @@ export default function AdminDashboardPage() {
         {/* Columna Derecha: Feed de Actividad Reciente */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <History className="w-4 h-4 text-indigo-600" />
-                <h3 className="text-sm font-bold text-slate-900">
-                  Actividad Reciente del Sistema
-                </h3>
-              </div>
-              <Link
-                href="/admin/auditoria"
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                Ver Bitácora →
-              </Link>
+            <div className="flex items-center gap-2 pb-4 border-b border-slate-100">
+              <History className="w-4 h-4 text-indigo-600" />
+              <h3 className="text-sm font-bold text-slate-900">
+                Actividad Reciente del Sistema
+              </h3>
             </div>
 
             <div className="mt-3 divide-y divide-slate-100">

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Toaster, toast } from 'sonner';
+import { Toaster } from 'sonner';
 import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { AdminHeader, BreadcrumbItem } from '@/components/layout/AdminHeader';
 import { authService } from '@/features/auth/services/auth.service';
@@ -20,7 +20,6 @@ export default function AdminAuthenticatedLayout({
   const [user, setUser] = useState<AuthUser | null>(null);
   const [activeModule, setActiveModule] = useState<any>(null);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   // 1. Cargar sesión y verificar autenticación
   const loadSession = useCallback(() => {
@@ -81,25 +80,6 @@ export default function AdminAuthenticatedLayout({
     return crumbs;
   }, [pathname]);
 
-  // 3. Acción de sincronización manual
-  const handleSync = async () => {
-    const token = authService.getStoredToken();
-    if (!token) return;
-
-    setIsSyncing(true);
-    try {
-      const mod = await ModuleImportService.getActiveModule(token);
-      if (mod) setActiveModule(mod);
-      toast.success('Datos sincronizados con éxito', {
-        description: 'Módulo académico y métricas actualizadas en vivo.',
-      });
-    } catch {
-      toast.error('Error al sincronizar datos');
-    } finally {
-      setTimeout(() => setIsSyncing(false), 600);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50/60 text-slate-900 flex">
       {/* Barra lateral fija (3 niveles responsive) */}
@@ -124,10 +104,7 @@ export default function AdminAuthenticatedLayout({
         {/* Cabecera pegada con breadcrumbs y estado */}
         <AdminHeader
           breadcrumbs={breadcrumbs}
-          isSystemOnline={true}
           activeModuleName={activeModule?.name}
-          isSyncing={isSyncing}
-          onSync={handleSync}
           onOpenMobileMenu={() => setIsMobileOpen(true)}
         />
 

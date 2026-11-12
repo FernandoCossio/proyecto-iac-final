@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/features/auth/services/auth.service';
 import { StudentsService } from '@/features/students/services/students.service';
@@ -14,7 +13,6 @@ import { ActiveStudentsTable } from '@/features/students/components/ActiveStuden
 import { StudentDossierDrawer } from '@/features/students/components/StudentDossierDrawer';
 import {
   Users,
-  PlusCircle,
   AlertCircle,
   Loader2,
 } from 'lucide-react';
@@ -145,21 +143,13 @@ export default function AdminStudentsDirectoryPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs shadow-2xs">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs shadow-2xs">
             <Users className="w-4 h-4 text-slate-400" />
             <span className="text-slate-500">Total:</span>
             <span className="font-mono tabular-nums font-bold text-slate-900">
               {data.totalCount} matriculados
             </span>
           </div>
-
-          <Link
-            href="/admin/modulo/importar"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-xs cursor-pointer"
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>Importar Planilla</span>
-          </Link>
         </div>
       </div>
 

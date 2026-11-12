@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Menu, ChevronRight, RefreshCw, BookOpen } from 'lucide-react';
+import { Menu, ChevronRight, BookOpen } from 'lucide-react';
 
 export interface BreadcrumbItem {
   label: string;
@@ -20,10 +20,7 @@ export interface AdminHeaderProps {
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
   breadcrumbs,
-  isSystemOnline = true,
   activeModuleName,
-  isSyncing = false,
-  onSync,
   onOpenMobileMenu,
 }) => {
   return (
@@ -75,37 +72,32 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         </nav>
       </div>
 
-      {/* Lado Derecho: Estado Operativo + Sincronización */}
+      {/* Lado Derecho: Módulo Activo con Tooltip + Estado Vigente */}
       <div className="flex items-center gap-2.5 shrink-0">
-        {/* Badge de Módulo Activo en Pantallas Medianas/Grandes */}
+        {/* Badge de Módulo Activo con Tooltip Estilizado y Nativo */}
         {activeModuleName && (
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-medium max-w-[200px] truncate">
+          <div
+            className="group relative hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200/70 border border-slate-200 text-slate-700 text-[11px] font-medium max-w-[240px] transition-colors cursor-default"
+            title={activeModuleName}
+          >
             <BookOpen className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
             <span className="truncate">{activeModuleName}</span>
+
+            {/* Tooltip flotante emergente en hover */}
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-50 pointer-events-none animate-fade-in">
+              <div className="w-2 h-2 bg-slate-900 rotate-45 -mb-1" />
+              <div className="bg-slate-900 text-white text-[11px] font-medium px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap border border-slate-800">
+                {activeModuleName}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Badge de Estado Institucional */}
+        {/* Badge de Estado Institucional Vigente */}
         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>Vigente</span>
         </div>
-
-        {/* Botón de Sincronización Manual */}
-        {onSync && (
-          <button
-            type="button"
-            onClick={onSync}
-            disabled={isSyncing}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 focus:outline-hidden transition-all disabled:opacity-50"
-            title="Sincronizar información del módulo"
-            aria-label="Sincronizar información"
-          >
-            <RefreshCw
-              className={`w-4 h-4 ${isSyncing ? 'animate-spin text-indigo-600' : ''}`}
-            />
-          </button>
-        )}
       </div>
     </header>
   );

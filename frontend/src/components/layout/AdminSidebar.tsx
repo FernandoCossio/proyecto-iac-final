@@ -10,7 +10,6 @@ import {
   FileSpreadsheet,
   ShieldCheck,
   X,
-  BookOpen,
 } from 'lucide-react';
 import { LogoutConfirmButton } from '@/features/auth/components/LogoutConfirmButton';
 
@@ -167,31 +166,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* Contexto del Módulo Activo (integrado, sobrio y de alta densidad) */}
-        <div className="px-3 py-2.5 mx-2.5 my-2 rounded-lg bg-slate-950/40 border border-slate-800/80 hidden lg:block">
-          <div className="flex items-center justify-between gap-1 mb-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-              Ciclo Académico
-            </span>
-            {activeModule?.code && (
-              <span className="font-mono text-[9px] font-bold text-slate-300 bg-slate-800/90 px-1.5 py-0.5 rounded border border-slate-700/60">
-                {activeModule.code}
-              </span>
-            )}
-          </div>
-          <div
-            className="text-xs font-semibold text-slate-200 truncate"
-            title={activeModule?.name || 'Módulo Académico'}
-          >
-            {activeModule?.name || 'Cargando módulo...'}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-emerald-400 font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <span className="text-slate-400">Estado:</span>
-            <span className="font-semibold text-emerald-400">Oficial en curso</span>
-          </div>
         </div>
 
         {/* Menú de Navegación Vertical */}
