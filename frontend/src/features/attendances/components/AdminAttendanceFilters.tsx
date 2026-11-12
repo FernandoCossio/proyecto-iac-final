@@ -1,5 +1,8 @@
-import React from 'react';
-import { Calendar, Users, RefreshCw, Filter } from 'lucide-react';
+'use client';
+
+import React, { useMemo } from 'react';
+import { Calendar, Users, RefreshCw } from 'lucide-react';
+import { Select, SelectOption } from '@/components/ui/Select';
 import {
   MatrixScheduleItem,
   MatrixStudentItem,
@@ -26,44 +29,75 @@ export const AdminAttendanceFilters: React.FC<AdminAttendanceFiltersProps> = ({
   onRefresh,
   loading,
 }) => {
+  // Opciones de sesiones de clase
+  const sessionOptions = useMemo<SelectOption[]>(() => {
+    const list: SelectOption[] = [
+      {
+        value: 'ALL',
+        label: `Todas las Sesiones (${schedules.length} clases)`,
+      },
+    ];
+
+    schedules.forEach((s, idx) => {
+      list.push({
+        value: s.classDate,
+        label: `Sesión ${idx + 1} — ${s.classDate}`,
+        badge: s.startTime && s.endTime ? `${s.startTime} - ${s.endTime}` : undefined,
+      });
+    });
+
+    return list;
+  }, [schedules]);
+
+  // Opciones de estudiantes
+  const studentOptions = useMemo<SelectOption[]>(() => {
+    const list: SelectOption[] = [
+      {
+        value: 'ALL',
+        label: `Todos los Alumnos (${students.length})`,
+      },
+    ];
+
+    students.forEach((st) => {
+      list.push({
+        value: st.id,
+        label: st.fullName,
+        description: st.email,
+        badge: st.registrationNumber,
+      });
+    });
+
+    return list;
+  }, [students]);
+
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-      {/* Contenedor de Selectores */}
+      {/* Contenedor de Selectores Atómicos */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
-        {/* Selector de Sesión / Fecha de Clase */}
-        <div className="relative flex-1 sm:max-w-xs">
-          <Calendar className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          <select
+        {/* Selector de Sesión con Buscador */}
+        <div className="flex-1 sm:max-w-xs">
+          <Select
             value={selectedDate || 'ALL'}
-            onChange={(e) => onDateChange(e.target.value)}
-            aria-label="Filtrar por sesión de clase"
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50/70 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 cursor-pointer font-medium"
-          >
-            <option value="ALL">Todas las Sesiones ({schedules.length} clases)</option>
-            {schedules.map((s, idx) => (
-              <option key={s.id || s.classDate} value={s.classDate}>
-                Sesión {idx + 1} — {s.classDate}
-              </option>
-            ))}
-          </select>
+            onChange={onDateChange}
+            options={sessionOptions}
+            icon={Calendar}
+            placeholder="Seleccionar sesión..."
+            searchable={schedules.length > 5}
+            searchPlaceholder="Buscar por fecha o sesión..."
+          />
         </div>
 
-        {/* Selector de Estudiante Específico */}
-        <div className="relative flex-1 sm:max-w-xs">
-          <Users className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-          <select
+        {/* Selector de Estudiante con Buscador */}
+        <div className="flex-1 sm:max-w-xs">
+          <Select
             value={selectedStudentId || 'ALL'}
-            onChange={(e) => onStudentChange(e.target.value)}
-            aria-label="Filtrar por estudiante específico"
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50/70 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 cursor-pointer font-medium"
-          >
-            <option value="ALL">Todos los Alumnos ({students.length})</option>
-            {students.map((st) => (
-              <option key={st.id} value={st.id}>
-                {st.registrationNumber} — {st.fullName}
-              </option>
-            ))}
-          </select>
+            onChange={onStudentChange}
+            options={studentOptions}
+            icon={Users}
+            placeholder="Seleccionar alumno..."
+            searchable={true}
+            searchPlaceholder="Buscar por nombre o cédula..."
+          />
         </div>
       </div>
 

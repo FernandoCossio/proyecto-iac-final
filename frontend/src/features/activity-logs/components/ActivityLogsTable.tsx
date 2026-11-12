@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Search,
   Eye,
@@ -9,8 +9,8 @@ import {
   Filter,
   Clock,
   User,
-  Calendar,
 } from 'lucide-react';
+import { Select, SelectOption } from '@/components/ui/Select';
 import {
   ActivityAction,
   ActivityLogItem,
@@ -40,6 +40,42 @@ export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({
   onRefresh,
   onSelectLog,
 }) => {
+  const actionOptions: SelectOption[] = useMemo(
+    () => [
+      { value: 'ALL', label: 'Todas las acciones' },
+      {
+        value: 'UPDATE_ATTENDANCE',
+        label: 'UPDATE_ATTENDANCE',
+        description: 'Justificación / Modificación manual',
+      },
+      {
+        value: 'MARK_ATTENDANCE',
+        label: 'MARK_ATTENDANCE',
+        description: 'Marcación de asistencia de estudiante',
+      },
+      {
+        value: 'LOGIN',
+        label: 'LOGIN',
+        description: 'Inicio de sesión en el portal',
+      },
+      {
+        value: 'ACTIVATE_MODULE',
+        label: 'ACTIVATE_MODULE',
+        description: 'Activación de ciclo académico',
+      },
+      {
+        value: 'IMPORT_STUDENTS',
+        label: 'IMPORT_STUDENTS',
+        description: 'Carga de nómina oficial de alumnos',
+      },
+      {
+        value: 'IMPORT_SCHEDULES',
+        label: 'IMPORT_SCHEDULES',
+        description: 'Carga de cronograma y horarios',
+      },
+    ],
+    [],
+  );
   const getActionBadge = (action: ActivityAction) => {
     switch (action) {
       case 'UPDATE_ATTENDANCE':
@@ -100,36 +136,26 @@ export const ActivityLogsTable: React.FC<ActivityLogsTableProps> = ({
       {/* Barra de Filtros */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          {/* Selector de Acción */}
-          <div className="relative min-w-[220px]">
-            <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <select
+          {/* Selector Atómico de Acción */}
+          <div className="w-full sm:w-64">
+            <Select
               value={params.action || 'ALL'}
-              aria-label="Filtrar por tipo de acción auditada"
-              onChange={(e) =>
-                onUpdateParams({ action: e.target.value as any, page: 1 })
-              }
-              className="w-full pl-9 pr-8 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50/60 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-            >
-              <option value="ALL">Todas las acciones</option>
-              <option value="UPDATE_ATTENDANCE">UPDATE_ATTENDANCE (Justificación / Cambio)</option>
-              <option value="MARK_ATTENDANCE">MARK_ATTENDANCE (Marcación)</option>
-              <option value="LOGIN">LOGIN (Inicio de sesión)</option>
-              <option value="ACTIVATE_MODULE">ACTIVATE_MODULE (Activación de módulo)</option>
-              <option value="IMPORT_STUDENTS">IMPORT_STUDENTS (Carga de nómina)</option>
-              <option value="IMPORT_SCHEDULES">IMPORT_SCHEDULES (Carga de calendario)</option>
-            </select>
+              onChange={(val) => onUpdateParams({ action: val as any, page: 1 })}
+              options={actionOptions}
+              icon={Filter}
+              placeholder="Filtrar por acción..."
+            />
           </div>
 
           {/* Buscador */}
-          <div className="relative min-w-[220px]">
+          <div className="relative flex-1 sm:min-w-[220px]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="text"
               value={params.search || ''}
               onChange={(e) => onUpdateParams({ search: e.target.value, page: 1 })}
               placeholder="Buscar por usuario o entidad..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50/60 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200 bg-slate-50/60 text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 font-medium"
             />
           </div>
         </div>
