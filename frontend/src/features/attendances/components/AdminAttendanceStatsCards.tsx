@@ -16,114 +16,114 @@ export const AdminAttendanceStatsCards: React.FC<
   AdminAttendanceStatsCardsProps
 > = ({ summary }) => {
   const getPercentageColor = (pct: number) => {
-    if (pct >= 80) return 'text-emerald-500 dark:text-emerald-400';
-    if (pct >= 70) return 'text-amber-500 dark:text-amber-400';
-    return 'text-rose-500 dark:text-rose-400';
+    if (pct >= 80) return 'text-emerald-700';
+    if (pct >= 70) return 'text-amber-700';
+    return 'text-rose-700';
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
       {/* 1. % Asistencia */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
             Tasa Asistencia
           </span>
-          <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
-            <TrendingUp className="w-5 h-5" />
+          <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
+            <TrendingUp className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
+        <div className="mt-2.5">
           <span
-            className={`text-3xl font-extrabold tracking-tight ${getPercentageColor(
+            className={`text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight ${getPercentageColor(
               summary.attendancePercentage,
             )}`}
           >
             {summary.attendancePercentage.toFixed(1)}%
           </span>
         </div>
-        <div className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Evaluada sobre asistencias y faltas
+        <div className="mt-1 text-[11px] text-slate-500 truncate">
+          Promedio de regularidad
         </div>
       </div>
 
       {/* 2. Total Presentes */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Total Presentes
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Presentes
           </span>
-          <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+        <div className="mt-2.5">
+          <span className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight">
             {summary.totalPresent}
           </span>
         </div>
-        <div className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-          Marcas registradas / aprobadas
+        <div className="mt-1 text-[11px] text-emerald-700 font-medium truncate">
+          Marcas puntuales
         </div>
       </div>
 
       {/* 3. Total Ausentes */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Total Ausentes
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Inasistencias
           </span>
-          <div className="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400">
-            <XCircle className="w-5 h-5" />
+          <div className="p-1.5 rounded-lg bg-rose-50 text-rose-700 border border-rose-100">
+            <XCircle className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+        <div className="mt-2.5">
+          <span className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight">
             {summary.totalAbsent}
           </span>
         </div>
-        <div className="mt-2 text-xs text-rose-600 dark:text-rose-400 font-medium">
-          Faltas calculadas o registradas
+        <div className="mt-1 text-[11px] text-rose-700 font-medium truncate">
+          Faltas computadas
         </div>
       </div>
 
       {/* 4. Total Estudiantes */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Estudiantes
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Matriculados
           </span>
-          <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
-            <Users className="w-5 h-5" />
+          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+            <Users className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+        <div className="mt-2.5">
+          <span className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight">
             {summary.totalStudents}
           </span>
         </div>
-        <div className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Inscritos en nómina activa
+        <div className="mt-1 text-[11px] text-slate-500 truncate">
+          Nómina oficial activa
         </div>
       </div>
 
       {/* 5. Total Sesiones */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs col-span-2 sm:col-span-1">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Clases Módulo
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+            Clases
           </span>
-          <div className="p-2 rounded-lg bg-violet-50 dark:bg-violet-950/60 text-violet-600 dark:text-violet-400">
-            <Calendar className="w-5 h-5" />
+          <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+            <Calendar className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+        <div className="mt-2.5">
+          <span className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight">
             {summary.totalClasses}
           </span>
         </div>
-        <div className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-          Fechas en cronograma
+        <div className="mt-1 text-[11px] text-slate-500 truncate">
+          Cronograma del curso
         </div>
       </div>
     </div>
