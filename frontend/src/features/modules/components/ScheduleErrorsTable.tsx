@@ -72,8 +72,8 @@ export const ScheduleErrorsTable: React.FC<ScheduleErrorsTableProps> = ({
           <tbody className="divide-y divide-slate-100">
             {errors.map((err, idx) => (
               <tr key={idx} className="hover:bg-rose-50/40 transition-colors">
-                <td className="px-4 py-3 font-mono font-bold text-slate-900 text-center">
-                  Fila {err.row}
+                <td className="px-4 py-3 font-mono tabular-nums font-bold text-slate-900 text-center">
+                  Fila #{err.row}
                 </td>
                 <td className="px-4 py-3 font-semibold text-slate-800">
                   {translateField(err.field)}

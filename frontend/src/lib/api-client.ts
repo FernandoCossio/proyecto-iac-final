@@ -22,10 +22,13 @@ export async function apiClient<T>(
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${baseUrl}${cleanEndpoint}`;
 
-  // Obtener token JWT si existe en el navegador
+  // Obtener token JWT si existe en el navegador (admin o estudiante)
   let authToken: string | null = null;
   if (typeof window !== 'undefined') {
-    authToken = localStorage.getItem('iac_student_token');
+    authToken =
+      localStorage.getItem('admin_token') ||
+      localStorage.getItem('iac_student_token') ||
+      localStorage.getItem('student_token');
   }
 
   const headers: Record<string, string> = {
