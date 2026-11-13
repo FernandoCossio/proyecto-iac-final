@@ -1,4 +1,4 @@
-export type AttendanceStatus = 'PRESENTE' | 'FALTA';
+export type AttendanceStatus = 'PRESENTE' | 'FALTA' | 'JUSTIFICADO' | 'RETARDO';
 export type UserRole = 'ADMIN' | 'STUDENT';
 
 export interface MatrixSummaryMetrics {
