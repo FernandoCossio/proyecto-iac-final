@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStudentAuth } from '../hooks/useStudentAuth';
@@ -25,6 +25,14 @@ export function StudentLoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Reiniciar estado y valores al montar el formulario (evita estados congelados tras logout)
+  useEffect(() => {
+    setIdentifier('');
+    setIsLoading(false);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -48,6 +56,7 @@ export function StudentLoginForm() {
 
       // Tiempo de retroalimentación antes de la redirección
       setTimeout(() => {
+        setIsLoading(false);
         router.push('/asistencia');
       }, 800);
     } catch (err: unknown) {

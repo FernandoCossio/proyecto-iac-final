@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authService } from '../services/auth.service';
@@ -26,6 +26,15 @@ export default function AdminLoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Reiniciar estado y valores al montar el formulario (evita estados congelados tras logout)
+  useEffect(() => {
+    setIdentifier('');
+    setPassword('');
+    setIsLoading(false);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +62,7 @@ export default function AdminLoginForm() {
       setSuccessMessage(response.message || 'Sesión iniciada exitosamente');
 
       setTimeout(() => {
+        setIsLoading(false);
         router.push('/admin/dashboard');
       }, 600);
     } catch (err: unknown) {

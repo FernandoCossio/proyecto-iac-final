@@ -43,10 +43,18 @@ export const LogoutConfirmButton: React.FC<LogoutConfirmButtonProps> = ({
         studentAuthService.clearSession();
       }
       setIsOpen(false);
-      router.push(targetRedirect);
+      // Hard navigation para limpiar memoria, estados de React, cachés y formularios
+      if (typeof window !== 'undefined') {
+        window.location.href = targetRedirect;
+      } else {
+        router.push(targetRedirect);
+      }
     } catch {
-      // Forzar redirección en caso de error
-      router.push(targetRedirect);
+      if (typeof window !== 'undefined') {
+        window.location.href = targetRedirect;
+      } else {
+        router.push(targetRedirect);
+      }
     } finally {
       setIsLoggingOut(false);
     }

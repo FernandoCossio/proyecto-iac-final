@@ -30,7 +30,6 @@ export function useStudentAuth() {
         const response = await studentAuthService.login(identifier);
         setSession(response);
         setStudent(response.student);
-        router.push('/asistencia');
         return response;
       } catch (err) {
         if (err instanceof ApiClientError) {
@@ -43,14 +42,18 @@ export function useStudentAuth() {
         setIsLoading(false);
       }
     },
-    [router],
+    [],
   );
 
   const logout = useCallback(() => {
     studentAuthService.clearSession();
     setSession(null);
     setStudent(null);
-    router.push('/login');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    } else {
+      router.push('/login');
+    }
   }, [router]);
 
   return {
