@@ -34,9 +34,13 @@ export function useAttendanceCheckIn() {
   }, [fetchStatus]);
 
   const executeCheckIn = useCallback(async () => {
+    // Bloqueo reactivo inmediato: si ya hay una petición en vuelo, descartar pulsación
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+
     try {
       const attendance = await attendanceService.checkIn();
       setSuccessMessage('¡Asistencia registrada correctamente!');
@@ -52,6 +56,9 @@ export function useAttendanceCheckIn() {
       return attendance;
     } catch (err) {
       if (err instanceof ApiClientError) {
+        if (err.code === 'ALREADY_MARKED_ATTENDANCE') {
+          fetchStatus();
+        }
         setErrorMessage(err.message);
       } else {
         setErrorMessage('No se pudo registrar la marcación. Intente nuevamente.');
@@ -60,7 +67,7 @@ export function useAttendanceCheckIn() {
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [isSubmitting, fetchStatus]);
 
   return {
     data,

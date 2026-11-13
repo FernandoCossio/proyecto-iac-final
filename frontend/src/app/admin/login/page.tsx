@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import AdminLoginForm from '@/features/auth/components/AdminLoginForm';
-import { Building2, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Building2, ArrowLeft, ShieldCheck, GraduationCap } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Acceso Administrativo | Sistema de Control de Asistencia',
@@ -32,13 +32,23 @@ export default function AdminLoginPage() {
             </div>
           </Link>
 
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Volver al Inicio</span>
-          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <GraduationCap className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Portal de Estudiantes</span>
+            </Link>
+
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Volver al Inicio</span>
+            </Link>
+          </div>
         </div>
       </header>
 

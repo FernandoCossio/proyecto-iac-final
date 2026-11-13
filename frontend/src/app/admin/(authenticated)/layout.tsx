@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Toaster } from 'sonner';
 import { AdminSidebar } from '@/components/layout/AdminSidebar';
 import { AdminHeader, BreadcrumbItem } from '@/components/layout/AdminHeader';
 import { authService } from '@/features/auth/services/auth.service';
@@ -113,9 +112,6 @@ export default function AdminAuthenticatedLayout({
           {children}
         </main>
       </div>
-
-      {/* Sistema de notificaciones flotantes institucionales */}
-      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }
