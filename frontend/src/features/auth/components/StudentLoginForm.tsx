@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStudentAuth } from '../hooks/useStudentAuth';
 import { ApiClientError } from '../../../lib/api-client';
+import { AuthRoleSwitcher } from './AuthRoleSwitcher';
 import {
   GraduationCap,
   User,
@@ -75,6 +77,9 @@ export function StudentLoginForm() {
 
   return (
     <div className="w-full max-w-md bg-white shadow-sm ring-1 ring-slate-900/5 rounded-2xl border-t-4 border-t-emerald-600 p-8 sm:p-10 transition-all">
+      {/* 1. Selector de Rol Segmentado */}
+      <AuthRoleSwitcher activeRole="STUDENT" />
+
       {/* Encabezado y Emblema Institucional */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-14 h-14 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-xs mb-4">
@@ -176,10 +181,23 @@ export function StudentLoginForm() {
         </button>
       </form>
 
-      <div className="mt-6 pt-4 border-t border-slate-100 space-y-2">
+      <div className="mt-6 pt-4 border-t border-slate-100 space-y-3">
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>Acceso sin contraseña mediante el padrón del módulo activo.</span>
+        </div>
+
+        <div className="pt-2 text-center border-t border-slate-100">
+          <p className="text-xs text-slate-500">
+            ¿Eres coordinador o personal administrativo?{' '}
+            <Link
+              href="/admin/login"
+              className="font-bold text-slate-800 hover:text-indigo-600 transition-colors inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Acceder a Administración</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authService } from '../services/auth.service';
+import { AuthRoleSwitcher } from './AuthRoleSwitcher';
 import {
   ShieldCheck,
   User,
@@ -13,6 +15,7 @@ import {
   CheckCircle2,
   Loader2,
   KeyRound,
+  ArrowRight,
 } from 'lucide-react';
 
 export default function AdminLoginForm() {
@@ -78,6 +81,9 @@ export default function AdminLoginForm() {
 
   return (
     <div className="w-full max-w-md bg-white shadow-sm ring-1 ring-slate-900/5 rounded-2xl border-t-4 border-t-indigo-600 p-8 sm:p-10 transition-all">
+      {/* 1. Selector de Rol Segmentado */}
+      <AuthRoleSwitcher activeRole="ADMIN" />
+
       {/* Encabezado y Emblema Institucional */}
       <div className="flex flex-col items-center mb-8">
         <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xs mb-4">
@@ -200,8 +206,8 @@ export default function AdminLoginForm() {
         </button>
       </form>
 
-      {/* Acceso de Demostración Rápida */}
-      <div className="mt-8 pt-5 border-t border-slate-100 text-center">
+      {/* Acceso de Demostración Rápida y Cambio de Rol */}
+      <div className="mt-8 pt-5 border-t border-slate-100 text-center space-y-3">
         <button
           type="button"
           onClick={handleUseDemo}
@@ -210,6 +216,19 @@ export default function AdminLoginForm() {
           <KeyRound className="w-3.5 h-3.5" />
           <span>Cargar credenciales institucionales de prueba</span>
         </button>
+
+        <div className="pt-3 border-t border-slate-100">
+          <p className="text-xs text-slate-500">
+            ¿Eres estudiante de postgrado?{' '}
+            <Link
+              href="/login"
+              className="font-bold text-slate-800 hover:text-emerald-700 transition-colors inline-flex items-center gap-1 cursor-pointer"
+            >
+              <span>Acceder al Portal de Estudiantes</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

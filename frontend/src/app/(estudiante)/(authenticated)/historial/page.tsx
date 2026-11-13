@@ -27,7 +27,7 @@ export default function HistorialPage() {
             Historial de Asistencias
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            {moduleName} • Auditoría de presencias, inasistencias y regularidad reglamentaria.
+            {moduleName}
           </p>
         </div>
 
