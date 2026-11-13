@@ -33,9 +33,6 @@ export default function AsistenciaPage() {
             <span>¡Hola, {firstName}!</span>
             <Sparkles className="w-5 h-5 text-emerald-600 hidden sm:inline-block" />
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            {moduleName}
-          </p>
         </div>
 
         {historyData && (
