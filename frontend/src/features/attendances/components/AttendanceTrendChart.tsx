@@ -45,7 +45,7 @@ export const AttendanceTrendChart: React.FC<AttendanceTrendChartProps> = ({
     data.reduce((acc, s) => acc + s.percentage, 0) / data.length;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
       <div>
         {/* Cabecera del Gráfico */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">

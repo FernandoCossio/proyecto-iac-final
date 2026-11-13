@@ -44,6 +44,14 @@ export const studentAuthService = {
   },
 
   /**
+   * Obtiene el token JWT actual del estudiante
+   */
+  getStoredToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(TOKEN_KEY);
+  },
+
+  /**
    * Cierra la sesión activa del estudiante
    */
   clearSession(): void {
