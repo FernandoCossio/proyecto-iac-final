@@ -34,7 +34,7 @@ export default function AsistenciaPage() {
             <Sparkles className="w-5 h-5 text-emerald-600 hidden sm:inline-block" />
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            {moduleName} • Registro diario y calendario académico de sesiones.
+            {moduleName}
           </p>
         </div>
 
