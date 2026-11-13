@@ -2,7 +2,6 @@
 
 import React, { useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
-import { Toaster } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { useStudentAuth } from '@/features/auth/hooks/useStudentAuth';
 import { StudentNavbar } from '@/components/layout/StudentNavbar';
@@ -45,9 +44,6 @@ export default function AuthenticatedStudentLayout({
 
       {/* 3. Barra de navegación inferior móvil (< 768px) */}
       {student && <StudentBottomNav />}
-
-      {/* 4. Sistema de notificaciones flotantes con Sonner */}
-      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { authService } from '../services/auth.service';
 import { AuthRoleSwitcher } from './AuthRoleSwitcher';
 import {
@@ -11,8 +12,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  AlertCircle,
-  CheckCircle2,
   Loader2,
   KeyRound,
   ArrowRight,
@@ -24,30 +23,28 @@ export default function AdminLoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Reiniciar estado y valores al montar el formulario (evita estados congelados tras logout)
   useEffect(() => {
     setIdentifier('');
     setPassword('');
     setIsLoading(false);
-    setErrorMessage(null);
-    setSuccessMessage(null);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
-    setSuccessMessage(null);
 
     if (!identifier.trim()) {
-      setErrorMessage('Por favor ingrese su usuario o correo electrónico.');
+      toast.error('Campo requerido', {
+        description: 'Por favor ingrese su usuario o correo electrónico.',
+      });
       return;
     }
 
     if (!password) {
-      setErrorMessage('Por favor ingrese su contraseña institucional.');
+      toast.error('Campo requerido', {
+        description: 'Por favor ingrese su contraseña institucional.',
+      });
       return;
     }
 
@@ -59,25 +56,30 @@ export default function AdminLoginForm() {
         password,
       });
 
-      setSuccessMessage(response.message || 'Sesión iniciada exitosamente');
+      toast.success(response.message || 'Sesión iniciada exitosamente', {
+        description: 'Bienvenido al Panel de Control de Administración.',
+      });
 
       setTimeout(() => {
         setIsLoading(false);
         router.push('/admin/dashboard');
       }, 600);
     } catch (err: unknown) {
+      let errorMsg = 'Error al conectar con el servidor. Intente nuevamente.';
       if (err && typeof err === 'object') {
         const errorObj = err as Record<string, unknown>;
         if (typeof errorObj.message === 'string') {
-          setErrorMessage(errorObj.message);
+          errorMsg = errorObj.message;
         } else if (errorObj.code === 'INVALID_CREDENTIALS') {
-          setErrorMessage('Credenciales de acceso incorrectas');
-        } else {
-          setErrorMessage('Error al conectar con el servidor. Intente nuevamente.');
+          errorMsg = 'Credenciales de acceso incorrectas';
         }
       } else {
-        setErrorMessage('Ocurrió un error inesperado al iniciar sesión.');
+        errorMsg = 'Ocurrió un error inesperado al iniciar sesión.';
       }
+
+      toast.error('Error de autenticación', {
+        description: errorMsg,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +88,9 @@ export default function AdminLoginForm() {
   const handleUseDemo = () => {
     setIdentifier('admin@sistema.com');
     setPassword('admin123');
-    setErrorMessage(null);
+    toast.info('Credenciales de prueba cargadas', {
+      description: 'Haga clic en Ingresar al Panel de Control.',
+    });
   };
 
   return (
@@ -106,34 +110,6 @@ export default function AdminLoginForm() {
           Panel de control y gestión académica del sistema de asistencia de postgrado.
         </p>
       </div>
-
-      {/* Alerta de Error */}
-      {errorMessage && (
-        <div
-          role="alert"
-          className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-900 text-sm shadow-xs animate-fade-in"
-        >
-          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <span className="font-bold block text-rose-950">Error de autenticación</span>
-            <span className="font-medium">{errorMessage}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Alerta de Éxito */}
-      {successMessage && (
-        <div
-          role="status"
-          className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3 text-emerald-900 text-sm shadow-xs animate-fade-in"
-        >
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <span className="font-bold block text-emerald-950">Acceso verificado</span>
-            <span className="font-medium">{successMessage}. Redirigiendo al panel...</span>
-          </div>
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Campo 1: Identificador */}
