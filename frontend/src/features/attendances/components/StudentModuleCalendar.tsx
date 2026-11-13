@@ -306,7 +306,7 @@ export function StudentModuleCalendar({
                   className={`min-h-[50px] sm:min-h-[54px] p-1.5 rounded-xl flex flex-col items-center justify-between relative transition-all text-xs font-semibold select-none ${
                     style.container
                   } ${
-                    isSelected ? 'ring-3 ring-emerald-600 ring-offset-1' : ''
+                    isSelected ? 'ring-3 ring-slate-900 ring-offset-2 shadow-sm' : ''
                   }`}
                 >
                   <span
