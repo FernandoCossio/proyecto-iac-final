@@ -8,7 +8,7 @@ export interface ClassScheduleSummary {
 export interface AttendanceRecord {
   id: string;
   markedAt: string;
-  status: 'PRESENTE' | 'FALTA';
+  status: 'PRESENTE' | 'RETARDO' | 'FALTA' | 'JUSTIFICADO' | string;
 }
 
 export interface TodayStatusData {
@@ -32,8 +32,9 @@ export interface ClassSessionHistoryItem {
   classDate: string;
   startTime: string;
   endTime: string;
-  status: 'PRESENTE' | 'FALTA' | 'PROGRAMADA' | 'PENDIENTE_HOY';
+  status: 'PRESENTE' | 'RETARDO' | 'FALTA' | 'JUSTIFICADO' | 'PROGRAMADA' | 'PENDIENTE_HOY' | string;
   markedAt: string | null;
+  remarks?: string | null;
 }
 
 export interface StudentHistoryResponse {
