@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { GraduationCap, CalendarCheck, History, LogOut } from 'lucide-react';
+import { LogoutConfirmButton } from '@/features/auth/components/LogoutConfirmButton';
 
 export interface StudentNavbarProps {
   student: {
@@ -87,16 +88,17 @@ export const StudentNavbar: React.FC<StudentNavbarProps> = ({
 
           <div className="h-6 w-px bg-slate-800" aria-hidden="true" />
 
-          <button
-            type="button"
-            onClick={onLogout}
-            className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-2 sm:px-2.5 sm:py-1.5 rounded-lg text-slate-300 hover:text-rose-400 hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-rose-500/40"
-            title="Cerrar sesión"
-            aria-label="Cerrar sesión institucional"
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            <span className="text-xs font-medium hidden sm:inline">Salir</span>
-          </button>
+          <LogoutConfirmButton role="STUDENT" redirectTo="/login">
+            <button
+              type="button"
+              className="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 p-2 sm:px-2.5 sm:py-1.5 rounded-lg text-slate-300 hover:text-rose-400 hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-rose-500/40"
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión institucional"
+            >
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-medium hidden sm:inline">Salir</span>
+            </button>
+          </LogoutConfirmButton>
         </div>
       </div>
     </header>

@@ -9,7 +9,6 @@ import {
   RefreshCw,
   AlertCircle,
   Loader2,
-  BookOpen,
 } from 'lucide-react';
 
 export default function HistorialPage() {
@@ -18,25 +17,17 @@ export default function HistorialPage() {
     useStudentHistory();
 
   const moduleName = student?.module?.name || 'Módulo Académico';
-  const moduleCode = student?.module?.code || '';
 
   return (
     <div className="space-y-6">
-      {/* 1. Cabecera Contextual del Expediente */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-xs">
+      {/* 1. Cabecera Institucional Limpia (Sin componentes redundantes de código de módulo) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200 mb-2">
-            <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
-            <span>
-              {moduleCode ? `${moduleCode} • ` : ''}
-              {moduleName}
-            </span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-            Historial de Asistencia Personal
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            Historial de Asistencias
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Auditoría de presencias, inasistencias y regularidad académica reglamentaria.
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            {moduleName} • Auditoría de presencias, inasistencias y regularidad reglamentaria.
           </p>
         </div>
 
@@ -45,7 +36,7 @@ export default function HistorialPage() {
           onClick={() => refreshHistory()}
           disabled={isLoading || isRefreshing}
           aria-label="Actualizar datos del historial"
-          className="self-start sm:self-auto inline-flex items-center justify-center gap-2 min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs transition disabled:opacity-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/20 active:scale-[0.98]"
+          className="self-start sm:self-auto inline-flex items-center justify-center gap-2 min-h-[44px] sm:min-h-[40px] px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 shadow-2xs transition disabled:opacity-50 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 active:scale-[0.98]"
         >
           <RefreshCw
             className={`w-4 h-4 text-emerald-700 ${
@@ -88,10 +79,10 @@ export default function HistorialPage() {
         </div>
       ) : data ? (
         <div className="space-y-6">
-          {/* Tarjetas de Resumen de KPIs */}
+          {/* Tarjetas de Resumen de 5 KPIs */}
           <AttendanceSummaryCards summary={data.summary} />
 
-          {/* Tabla / Timeline Cronológico Adaptativo */}
+          {/* Tabla / Timeline Cronológico con Filtros Rápidos */}
           <AttendanceHistoryTable
             sessions={data.sessions}
             isLoading={isRefreshing}

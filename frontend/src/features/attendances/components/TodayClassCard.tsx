@@ -17,13 +17,11 @@ import {
 
 export interface TodayClassCardProps {
   moduleName?: string;
-  moduleCode?: string;
   className?: string;
 }
 
 export function TodayClassCard({
   moduleName = 'Módulo Activo',
-  moduleCode = '',
   className = '',
 }: TodayClassCardProps) {
   const {
@@ -95,22 +93,25 @@ export function TodayClassCard({
 
   return (
     <div
-      className={`w-full max-w-xl mx-auto bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden transition-all ${className}`}
+      className={`w-full bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden transition-all ${className}`}
     >
       {/* 1. Header Institucional de la Tarjeta */}
       <div className="bg-slate-900 p-5 sm:p-6 text-white border-b border-slate-800">
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <span className="px-2.5 py-0.5 bg-slate-800 rounded-md text-[11px] font-mono font-bold tracking-wider uppercase border border-slate-700 text-emerald-400">
-            {moduleCode || 'MÓDULO ACTIVO'}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <span className="px-2.5 py-0.5 bg-emerald-500/15 rounded-md text-[11px] font-semibold text-emerald-400 border border-emerald-500/30">
+            Registro Diario
           </span>
           <span className="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Módulo Oficial en Curso</span>
+            <span>Control Transaccional</span>
           </span>
         </div>
         <h2 className="text-lg sm:text-xl font-bold leading-snug text-white">
-          {moduleName}
+          Marcación de Asistencia
         </h2>
+        <p className="text-xs text-slate-400 mt-1 truncate">
+          {moduleName}
+        </p>
       </div>
 
       {/* 2. Cuerpo de Estados Operativos */}
