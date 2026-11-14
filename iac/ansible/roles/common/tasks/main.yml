@@ -1,0 +1,27 @@
+---
+# ==============================================================================
+# Role: common
+# Propósito: Configuración base transversal y telemetría de monitoreo
+# ==============================================================================
+
+- name: Configurar timezone del sistema a UTC
+  ansible.builtin.timezone:
+    name: UTC
+
+- name: Instalar utilidades esenciales del sistema
+  ansible.builtin.apt:
+    name:
+      - curl
+      - jq
+      - ufw
+      - software-properties-common
+      - ca-certificates
+    state: present
+    update_cache: false
+
+- name: Verificar y habilitar servicio node_exporter
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: started
+    enabled: true
+  ignore_errors: true

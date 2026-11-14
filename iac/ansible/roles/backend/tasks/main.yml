@@ -1,0 +1,71 @@
+---
+# ==============================================================================
+# Role: backend
+# Propósito: Configuración de entorno NestJS, migraciones y bootstrap admin
+# ==============================================================================
+
+- name: Asegurar existencia del directorio de la aplicacion backend
+  ansible.builtin.file:
+    path: /var/www/backend
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Desplegar archivo de configuracion .env para NestJS
+  ansible.builtin.template:
+    src: backend.env.j2
+    dest: /var/www/backend/.env
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+  no_log: true
+  notify: Reiniciar backend pm2
+
+- name: Verificar si el codigo de la aplicacion esta presente
+  ansible.builtin.stat:
+    path: /var/www/backend/package.json
+  register: backend_package_json
+
+- name: Ejecutar migraciones de base de datos TypeORM
+  ansible.builtin.command:
+    cmd: npm run migration:run
+    chdir: /var/www/backend
+  become_user: ubuntu
+  environment:
+    NODE_ENV: production
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  when: backend_package_json.stat.exists
+  register: migration_result
+  changed_when: migration_result.rc == 0
+
+- name: Ejecutar bootstrap limpio del Administrador del Tenant (Fase 0)
+  ansible.builtin.command:
+    cmd: >
+      npm run init:tenant-admin --
+      --email="{{ tenant_admin_email }}"
+      --username="{{ tenant_admin_username }}"
+      --password="{{ tenant_admin_password }}"
+      --fullname="{{ tenant_admin_fullname }}"
+    chdir: /var/www/backend
+  become_user: ubuntu
+  environment:
+    NODE_ENV: production
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  when: backend_package_json.stat.exists and tenant_admin_email is defined
+  no_log: true
+  register: admin_init_result
+  changed_when: admin_init_result.rc == 0
+
+- name: Verificar o iniciar el proceso backend con PM2
+  ansible.builtin.command:
+    cmd: pm2 start dist/main.js --name backend --time
+    chdir: /var/www/backend
+  become_user: ubuntu
+  environment:
+    NODE_ENV: production
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  when: backend_package_json.stat.exists
+  register: pm2_start_result
+  changed_when: pm2_start_result.rc == 0
+  failed_when: false

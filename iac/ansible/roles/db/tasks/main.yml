@@ -1,0 +1,62 @@
+---
+# ==============================================================================
+# Role: db
+# Propósito: Aprovisionamiento de base de datos PostgreSQL 16 y seguridad
+# ==============================================================================
+
+- name: Instalar libreria de integracion Python para PostgreSQL
+  ansible.builtin.apt:
+    name:
+      - python3-psycopg2
+    state: present
+    update_cache: false
+
+- name: Asegurar que el servicio PostgreSQL este iniciado y habilitado
+  ansible.builtin.systemd:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Configurar listen_addresses en postgresql.conf
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/16/main/postgresql.conf
+    regexp: "^#?listen_addresses\\s*=.*"
+    line: "listen_addresses = '*'"
+    state: present
+  notify: Reiniciar postgresql
+
+- name: Crear base de datos para el tenant
+  community.postgresql.postgresql_db:
+    name: asistencia_db
+    encoding: UTF-8
+    lc_collate: en_US.UTF-8
+    lc_ctype: en_US.UTF-8
+    state: present
+  become_user: postgres
+
+- name: Crear usuario de aplicacion con contrasena cifrada
+  community.postgresql.postgresql_user:
+    name: asistencia_app
+    password: "{{ tenant_db_password }}"
+    encrypted: true
+    state: present
+  become_user: postgres
+  no_log: true
+
+- name: Conceder privilegios sobre la base de datos asistencia_db
+  community.postgresql.postgresql_privs:
+    database: asistencia_db
+    roles: asistencia_app
+    type: database
+    privs: ALL
+    state: present
+  become_user: postgres
+
+- name: Desplegar configuracion de control de acceso pg_hba.conf
+  ansible.builtin.template:
+    src: pg_hba.conf.j2
+    dest: /etc/postgresql/16/main/pg_hba.conf
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: Reiniciar postgresql
