@@ -16,7 +16,79 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  Cloud,
 } from "lucide-react";
+
+const CLOUD_PROVIDERS = [
+  { id: "aws", name: "Amazon Web Services (AWS)", short: "AWS" },
+  { id: "azure", name: "Microsoft Azure (Azure)", short: "Azure" },
+] as const;
+
+interface RegionOption {
+  code: string;
+  name: string;
+  location: string;
+  tag?: string;
+}
+
+const CLOUD_REGIONS: Record<"aws" | "azure", RegionOption[]> = {
+  aws: [
+    {
+      code: "us-east-1",
+      name: "US East (N. Virginia)",
+      location: "Norte de Virginia, EE.UU.",
+      tag: "Recomendada",
+    },
+    {
+      code: "us-east-2",
+      name: "US East (Ohio)",
+      location: "Columbus, Ohio, EE.UU.",
+    },
+    {
+      code: "us-west-2",
+      name: "US West (Oregon)",
+      location: "Oregón, EE.UU.",
+    },
+    {
+      code: "sa-east-1",
+      name: "South America (São Paulo)",
+      location: "São Paulo, Brasil",
+    },
+    {
+      code: "eu-west-1",
+      name: "Europe (Ireland)",
+      location: "Dublín, Irlanda",
+    },
+  ],
+  azure: [
+    {
+      code: "spaincentral",
+      name: "Spain Central (Madrid)",
+      location: "Madrid, España",
+      tag: "Recomendada",
+    },
+    {
+      code: "canadacentral",
+      name: "Canada Central (Toronto)",
+      location: "Toronto, Canadá",
+    },
+    {
+      code: "brazilsouth",
+      name: "Brazil South (São Paulo)",
+      location: "São Paulo, Brasil",
+    },
+    {
+      code: "francecentral",
+      name: "France Central (París)",
+      location: "París, Francia",
+    },
+    {
+      code: "southafricanorth",
+      name: "South Africa North (Johannesburgo)",
+      location: "Johannesburgo, Sudáfrica",
+    },
+  ],
+};
 
 export default function CrearTenantPage() {
   const router = useRouter();
@@ -28,10 +100,10 @@ export default function CrearTenantPage() {
   const [name, setName] = useState("Instituto San Marcos");
   const [id, setId] = useState("san-marcos");
   const [adminEmail, setAdminEmail] = useState("admin@sanmarcos.edu");
+  const [cloudProvider, setCloudProvider] = useState<"aws" | "azure">("aws");
   const [region, setRegion] = useState("us-east-1");
   const [environment, setEnvironment] = useState<"prod" | "staging" | "dev">("prod");
   const [planId, setPlanId] = useState<"basico" | "estandar" | "avanzado">("estandar");
-  const [cloudProvider, setCloudProvider] = useState<"aws" | "azure">("aws");
   const [iacEngine, setIacEngine] = useState<"terraform" | "opentofu" | "cloudformation" | "pulumi">("terraform");
 
   // Step 2 Configuration State
@@ -40,6 +112,15 @@ export default function CrearTenantPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [sshKeyName, setSshKeyName] = useState("iac-asistencia");
   const [allowedCidr, setAllowedCidr] = useState("0.0.0.0/0");
+
+  const handleProviderChange = (newProvider: "aws" | "azure") => {
+    setCloudProvider(newProvider);
+    if (newProvider === "aws") {
+      setRegion("us-east-1");
+    } else {
+      setRegion("spaincentral");
+    }
+  };
 
   // Auto-slug generation from name
   const handleNameChange = (val: string) => {
@@ -111,7 +192,8 @@ export default function CrearTenantPage() {
       subtitle: "Para instituciones pequeñas",
       students: "Hasta 100 estudiantes",
       db: "Base de datos: 10 GB",
-      sku: "t3.micro (AWS) / Standard_B1s (Azure)",
+      awsSku: "t3.micro (2 vCPU, 1 GB RAM)",
+      azureSku: "Standard_B1s (1 vCPU, 1 GB RAM)",
     },
     {
       id: "estandar",
@@ -119,7 +201,8 @@ export default function CrearTenantPage() {
       subtitle: "Para instituciones en crecimiento",
       students: "Hasta 1.000 estudiantes",
       db: "Base de datos: 50 GB",
-      sku: "t3.small (AWS) / Standard_B2s_v2 (Azure)",
+      awsSku: "t3.small (2 vCPU, 2 GB RAM)",
+      azureSku: "Standard_B2s_v2 (2 vCPU, 4 GB RAM)",
     },
     {
       id: "avanzado",
@@ -127,15 +210,17 @@ export default function CrearTenantPage() {
       subtitle: "Para alta demanda",
       students: "Hasta 5,000 estudiantes",
       db: "Base de datos: 200 GB",
-      sku: "c7i-flex.large (AWS) / Standard_B4s_v2 (Azure)",
+      awsSku: "c7i-flex.large (2 vCPU, 4 GB RAM)",
+      azureSku: "Standard_B4s_v2 (4 vCPU, 8 GB RAM)",
     },
   ];
 
-  const getRegionLabel = (code: string) => {
-    if (code === "us-east-1") return "US East (N. Virginia)";
-    if (code === "us-east-2") return "US East (Ohio)";
-    if (code === "spaincentral") return "Spain Central (Madrid)";
-    if (code === "mexicocentral") return "México Central";
+  const getRegionLabel = (code: string, provider: "aws" | "azure") => {
+    const list = CLOUD_REGIONS[provider] || [];
+    const found = list.find((r) => r.code === code);
+    if (found) {
+      return `${found.name} (${found.code})`;
+    }
     return code;
   };
 
@@ -295,7 +380,7 @@ export default function CrearTenantPage() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700">
                       Correo del administrador <span className="text-red-500">*</span>
@@ -312,17 +397,35 @@ export default function CrearTenantPage() {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700">
-                      Región de despliegue <span className="text-red-500">*</span>
+                      Proveedor Cloud <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={cloudProvider}
+                      onChange={(e) => handleProviderChange(e.target.value as "aws" | "azure")}
+                      className="mt-1.5 w-full rounded-lg border border-slate-300 bg-slate-50/50 px-3 py-2 text-sm font-semibold text-slate-900 transition focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    >
+                      {CLOUD_PROVIDERS.map((prov) => (
+                        <option key={prov.id} value={prov.id}>
+                          {prov.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Región ({cloudProvider.toUpperCase()}) <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={region}
                       onChange={(e) => setRegion(e.target.value)}
                       className="mt-1.5 w-full rounded-lg border border-slate-300 bg-slate-50/50 px-3 py-2 text-sm text-slate-900 transition focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500"
                     >
-                      <option value="us-east-1">US East (N. Virginia) [AWS]</option>
-                      <option value="us-east-2">US East (Ohio) [AWS]</option>
-                      <option value="spaincentral">Spain Central (Madrid) [Azure]</option>
-                      <option value="mexicocentral">México Central</option>
+                      {CLOUD_REGIONS[cloudProvider].map((reg) => (
+                        <option key={reg.code} value={reg.code}>
+                          {reg.name} {reg.tag ? `★ [${reg.tag}]` : ""}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -381,6 +484,10 @@ export default function CrearTenantPage() {
                           <p className="flex items-center gap-1.5">
                             <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                             {p.db}
+                          </p>
+                          <p className="flex items-center gap-1.5 font-mono text-[10px] text-brand-700 bg-brand-50/70 px-1.5 py-0.5 rounded">
+                            <Server className="h-3 w-3 shrink-0 text-brand-600" />
+                            {cloudProvider === "aws" ? p.awsSku : p.azureSku}
                           </p>
                         </div>
                       </div>
@@ -568,8 +675,14 @@ export default function CrearTenantPage() {
                   <p className="text-sm font-bold capitalize text-slate-900">{planId}</p>
                 </div>
                 <div>
-                  <span className="font-semibold text-slate-500">Proveedor y Región:</span>
-                  <p className="text-sm font-bold text-slate-900">{cloudProvider.toUpperCase()} - {getRegionLabel(region)}</p>
+                  <span className="font-semibold text-slate-500">Proveedor Cloud:</span>
+                  <p className="text-sm font-bold text-slate-900">
+                    {cloudProvider === "aws" ? "Amazon Web Services (AWS)" : "Microsoft Azure (Azure)"}
+                  </p>
+                </div>
+                <div>
+                  <span className="font-semibold text-slate-500">Región de Despliegue:</span>
+                  <p className="text-sm font-bold text-slate-900">{getRegionLabel(region, cloudProvider)}</p>
                 </div>
                 <div>
                   <span className="font-semibold text-slate-500">Motor de IaC:</span>
@@ -715,12 +828,20 @@ export default function CrearTenantPage() {
               </div>
             </div>
 
-            {/* Entorno y región */}
-            <div className="mt-4 space-y-1 text-xs">
-              <span className="font-semibold text-slate-700">Entorno y región</span>
+            {/* Proveedor, Entorno y Región */}
+            <div className="mt-4 space-y-1.5 border-b border-slate-100 pb-3 text-xs">
+              <span className="font-semibold text-slate-700">Nube y Región</span>
               <div className="flex items-center justify-between text-slate-600">
-                <span>{getEnvironmentLabel(environment)}</span>
-                <span className="font-medium">{getRegionLabel(region)}</span>
+                <span>Proveedor</span>
+                <span className="font-bold uppercase text-slate-900">{cloudProvider}</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Región</span>
+                <span className="font-medium text-slate-900">{getRegionLabel(region, cloudProvider)}</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Entorno</span>
+                <span className="font-medium text-slate-900">{getEnvironmentLabel(environment)}</span>
               </div>
             </div>
 
