@@ -122,6 +122,40 @@ export function runProcess(
 }
 
 /**
+ * Resuelve la ruta del archivo de clave privada iac-asistencia.pem y su clave pública asociada.
+ * Soporta búsqueda en:
+ * 1. ~/.ssh/iac-asistencia.pem (ruta estándar de claves SSH de usuario)
+ * 2. Raíz del repositorio (REPO_ROOT/iac-asistencia.pem)
+ * 3. platform/iac-asistencia.pem
+ */
+function resolveSshKeyPaths(): { pemPath: string; pubPath: string } {
+  const homeDir = process.env.USERPROFILE || process.env.HOME || "";
+  const candidates = [
+    path.join(homeDir, ".ssh", "iac-asistencia.pem"),
+    path.join(REPO_ROOT, "iac-asistencia.pem"),
+    path.join(REPO_ROOT, "platform", "iac-asistencia.pem"),
+  ];
+
+  let resolvedPem = "";
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      resolvedPem = c;
+      break;
+    }
+  }
+
+  if (!resolvedPem) {
+    resolvedPem = path.join(homeDir, ".ssh", "iac-asistencia.pem");
+  }
+
+  const resolvedPub = resolvedPem.endsWith(".pem")
+    ? resolvedPem.slice(0, -4) + ".pub"
+    : `${resolvedPem}.pub`;
+
+  return { pemPath: resolvedPem, pubPath: resolvedPub };
+}
+
+/**
  * Prepara el directorio de trabajo dedicado del tenant.
  */
 function prepareTenantFiles(
@@ -139,20 +173,18 @@ function prepareTenantFiles(
           .relative(tenantDir, path.join(REPO_ROOT, "iac", "terraform", "modules", "azure_tenant"))
           .replace(/\\/g, "/");
 
-  // Obtener la llave pública SSH para Azure desde ~/.ssh/
+  // Obtener la llave pública SSH para Azure desde ~/.ssh/ o raíz del repositorio
   let sshPublicKey = "";
-  const sshDir = path.join(process.env.USERPROFILE || "", ".ssh");
-  const pubKeyPath = path.join(sshDir, "iac-asistencia.pub");
-  const pemKeyPath = path.join(sshDir, "iac-asistencia.pem");
+  const { pemPath, pubPath } = resolveSshKeyPaths();
 
-  if (fs.existsSync(pubKeyPath)) {
-    sshPublicKey = fs.readFileSync(pubKeyPath, "utf-8").trim();
-  } else if (fs.existsSync(pemKeyPath)) {
+  if (fs.existsSync(pubPath)) {
+    sshPublicKey = fs.readFileSync(pubPath, "utf-8").trim();
+  } else if (fs.existsSync(pemPath)) {
     try {
-      sshPublicKey = execSync(`ssh-keygen -y -f "${pemKeyPath}"`)
+      sshPublicKey = execSync(`ssh-keygen -y -f "${pemPath}"`)
         .toString()
         .trim();
-      fs.writeFileSync(pubKeyPath, sshPublicKey + "\n", "utf-8");
+      fs.writeFileSync(pubPath, sshPublicKey + "\n", "utf-8");
     } catch (err) {
       console.warn("[Runner] No se pudo extraer la clave pública con ssh-keygen:", err);
     }
@@ -480,7 +512,7 @@ ansible-playbook -i /tenant/inventory-${tenantId}.ini site.yml -e @/tenant/extra
     });
 
     // Ejecutar Ansible a través de Docker con volumen montado y script aislado
-    const sshKeyFile = path.join(process.env.USERPROFILE || "", ".ssh", "iac-asistencia.pem");
+    const { pemPath: sshKeyFile } = resolveSshKeyPaths();
     const dockerArgs = [
       "run",
       "--rm",
