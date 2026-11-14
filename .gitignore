@@ -73,3 +73,7 @@ docs/
 iac/ansible/inventory/*.ini
 !iac/ansible/inventory/.gitkeep
 
+# CloudFormation Parameters
+iac/cloudformation/parameters/*.json
+!iac/cloudformation/parameters/*.example
+
