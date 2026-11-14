@@ -1,6 +1,7 @@
 import * as azure from "@pulumi/azure-native";
 import { TenantConfig } from "../config";
 import { AZURE_PLAN_CATALOG } from "../utils/plan-catalog";
+import { getCloudInitConfig } from "../utils/cloud-init";
 import { AzureNetworkResult } from "./network";
 
 export interface AzureComputeResult {
@@ -31,6 +32,7 @@ export function createAzureCompute(config: TenantConfig, network: AzureNetworkRe
     osProfile: {
       computerName: `fe-${config.id.substring(0, 8)}`,
       adminUsername: "ubuntu",
+      customData: Buffer.from(getCloudInitConfig("frontend", config.id, sshKey)).toString("base64"),
       linuxConfiguration: {
         disablePasswordAuthentication: true,
         ssh: {
@@ -78,6 +80,7 @@ export function createAzureCompute(config: TenantConfig, network: AzureNetworkRe
     osProfile: {
       computerName: `be-${config.id.substring(0, 8)}`,
       adminUsername: "ubuntu",
+      customData: Buffer.from(getCloudInitConfig("backend", config.id, sshKey)).toString("base64"),
       linuxConfiguration: {
         disablePasswordAuthentication: true,
         ssh: {
@@ -125,6 +128,7 @@ export function createAzureCompute(config: TenantConfig, network: AzureNetworkRe
     osProfile: {
       computerName: `db-${config.id.substring(0, 8)}`,
       adminUsername: "ubuntu",
+      customData: Buffer.from(getCloudInitConfig("database", config.id, sshKey)).toString("base64"),
       linuxConfiguration: {
         disablePasswordAuthentication: true,
         ssh: {

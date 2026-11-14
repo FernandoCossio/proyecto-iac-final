@@ -1,0 +1,24 @@
+# ==============================================================================
+# Configuración PostgreSQL: pg_hba.conf (Aislamiento de Tenant)
+# ==============================================================================
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# Conexiones locales del administrador de sistema
+local   all             postgres                                peer
+local   all             all                                     scram-sha-256
+
+# Conexiones locales IPv4 e IPv6
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             ::1/128                 scram-sha-256
+
+# Acceso exclusivo desde el nodo Backend para la base de datos del tenant
+{% if hostvars['backend-node'] is defined and hostvars['backend-node']['ansible_host'] is defined %}
+host    asistencia_db   asistencia_app  {{ hostvars['backend-node']['ansible_host'] }}/32    scram-sha-256
+{% elif backend_private_ip is defined %}
+host    asistencia_db   asistencia_app  {{ backend_private_ip }}/32                          scram-sha-256
+{% else %}
+# Respaldo para redes privadas RFC1918
+host    asistencia_db   asistencia_app  10.0.0.0/8                                           scram-sha-256
+host    asistencia_db   asistencia_app  172.16.0.0/12                                        scram-sha-256
+host    asistencia_db   asistencia_app  192.168.0.0/16                                       scram-sha-256
+{% endif %}

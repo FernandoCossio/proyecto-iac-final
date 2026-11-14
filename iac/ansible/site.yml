@@ -1,0 +1,32 @@
+---
+# ==============================================================================
+# Playbook Maestro de Configuración Post-Aprovisionamiento Multi-Tenant
+# ==============================================================================
+
+- name: "[Fase 1] Configuración Base y Monitoreo Común"
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - common
+
+- name: "[Fase 2] Configuración de Capa de Datos PostgreSQL 16"
+  hosts: database
+  become: true
+  gather_facts: true
+  roles:
+    - db
+
+- name: "[Fase 3] Configuración de API NestJS, Migraciones y Bootstrap Admin"
+  hosts: backend
+  become: true
+  gather_facts: true
+  roles:
+    - backend
+
+- name: "[Fase 4] Configuración de Portal Frontend Next.js y Nginx Reverse Proxy"
+  hosts: frontend
+  become: true
+  gather_facts: true
+  roles:
+    - frontend

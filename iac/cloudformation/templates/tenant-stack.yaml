@@ -356,6 +356,20 @@ Resources:
       SubnetId: !Ref PublicSubnet
       SecurityGroupIds:
         - !Ref FrontendSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #cloud-config
+          hostname: ${TenantId}-frontend
+          fqdn: ${TenantId}-frontend.local
+          manage_etc_hosts: true
+          package_update: true
+          packages:
+            - python3
+            - python3-apt
+            - curl
+            - jq
+          runcmd:
+            - echo "[Cloud-Init] Frontend node initialized successfully" > /var/log/cloud-init-status.log
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:
@@ -388,6 +402,20 @@ Resources:
       SubnetId: !Ref PrivateBackendSubnet
       SecurityGroupIds:
         - !Ref BackendSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #cloud-config
+          hostname: ${TenantId}-backend
+          fqdn: ${TenantId}-backend.local
+          manage_etc_hosts: true
+          package_update: true
+          packages:
+            - python3
+            - python3-apt
+            - curl
+            - jq
+          runcmd:
+            - echo "[Cloud-Init] Backend node initialized successfully" > /var/log/cloud-init-status.log
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:
@@ -420,6 +448,20 @@ Resources:
       SubnetId: !Ref IsolatedDbSubnet
       SecurityGroupIds:
         - !Ref DatabaseSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #cloud-config
+          hostname: ${TenantId}-db
+          fqdn: ${TenantId}-db.local
+          manage_etc_hosts: true
+          package_update: true
+          packages:
+            - python3
+            - python3-apt
+            - curl
+            - jq
+          runcmd:
+            - echo "[Cloud-Init] Database node initialized successfully" > /var/log/cloud-init-status.log
       BlockDeviceMappings:
         - DeviceName: "/dev/sda1"
           Ebs:

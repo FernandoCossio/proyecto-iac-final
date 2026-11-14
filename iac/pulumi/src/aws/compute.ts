@@ -2,6 +2,7 @@ import * as aws from "@pulumi/aws";
 import * as pulumi from "@pulumi/pulumi";
 import { TenantConfig } from "../config";
 import { AWS_PLAN_CATALOG } from "../utils/plan-catalog";
+import { getCloudInitConfig } from "../utils/cloud-init";
 import { AwsNetworkResult } from "./network";
 import { AwsSecurityResult } from "./security";
 
@@ -72,6 +73,7 @@ export function createAwsCompute(
     vpcSecurityGroupIds: [security.frontendSg.id],
     associatePublicIpAddress: true,
     keyName: keyName,
+    userData: getCloudInitConfig("frontend", config.id, config.sshPublicKey || ""),
     rootBlockDevice: {
       volumeType: "gp3",
       volumeSize: hardware.diskSizeGB,
@@ -98,6 +100,7 @@ export function createAwsCompute(
     vpcSecurityGroupIds: [security.backendSg.id],
     associatePublicIpAddress: false,
     keyName: keyName,
+    userData: getCloudInitConfig("backend", config.id, config.sshPublicKey || ""),
     rootBlockDevice: {
       volumeType: "gp3",
       volumeSize: hardware.diskSizeGB,
@@ -124,6 +127,7 @@ export function createAwsCompute(
     vpcSecurityGroupIds: [security.databaseSg.id],
     associatePublicIpAddress: false,
     keyName: keyName,
+    userData: getCloudInitConfig("database", config.id, config.sshPublicKey || ""),
     rootBlockDevice: {
       volumeType: "gp3",
       volumeSize: hardware.diskSizeGB,

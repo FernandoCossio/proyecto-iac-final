@@ -1,0 +1,17 @@
+---
+# ==============================================================================
+# Handlers: Role frontend
+# ==============================================================================
+
+- name: Recargar nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded
+
+- name: Reiniciar frontend pm2
+  ansible.builtin.command:
+    cmd: pm2 restart frontend
+  become_user: ubuntu
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  ignore_errors: true

@@ -1,0 +1,65 @@
+---
+# ==============================================================================
+# Role: frontend
+# Propósito: Configuración de Nginx Reverse Proxy y proceso Next.js
+# ==============================================================================
+
+- name: Asegurar que Nginx este instalado
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: false
+
+- name: Asegurar que el servicio Nginx este iniciado y habilitado
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Asegurar existencia del directorio de la aplicacion frontend
+  ansible.builtin.file:
+    path: /var/www/frontend
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Desplegar configuracion de Reverse Proxy en Nginx
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/asistencia-frontend
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Recargar nginx
+
+- name: Habilitar sitio asistencia-frontend en Nginx
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/asistencia-frontend
+    dest: /etc/nginx/sites-enabled/asistencia-frontend
+    state: link
+  notify: Recargar nginx
+
+- name: Deshabilitar sitio default de Nginx
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Recargar nginx
+
+- name: Verificar si el codigo de la aplicacion frontend esta presente
+  ansible.builtin.stat:
+    path: /var/www/frontend/package.json
+  register: frontend_package_json
+
+- name: Verificar o iniciar el proceso frontend con PM2
+  ansible.builtin.command:
+    cmd: pm2 start npm --name frontend -- run start -- -p 3000
+    chdir: /var/www/frontend
+  become_user: ubuntu
+  environment:
+    NODE_ENV: production
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  when: frontend_package_json.stat.exists
+  register: pm2_frontend_start_result
+  changed_when: pm2_frontend_start_result.rc == 0
+  failed_when: false

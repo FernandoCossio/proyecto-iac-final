@@ -25,6 +25,10 @@ resource "aws_instance" "frontend" {
   associate_public_ip_address = true
   key_name                    = local.resolved_key_name
   ebs_optimized               = true
+  user_data = templatefile("${path.module}/../../../cloud-init/frontend.cloud-init.yaml", {
+    tenant_id      = var.tenant_id
+    ssh_public_key = var.ssh_public_key != null ? var.ssh_public_key : ""
+  })
 
   metadata_options {
     http_endpoint = "enabled"
@@ -58,6 +62,10 @@ resource "aws_instance" "backend" {
   associate_public_ip_address = false
   key_name                    = local.resolved_key_name
   ebs_optimized               = true
+  user_data = templatefile("${path.module}/../../../cloud-init/backend.cloud-init.yaml", {
+    tenant_id      = var.tenant_id
+    ssh_public_key = var.ssh_public_key != null ? var.ssh_public_key : ""
+  })
 
   metadata_options {
     http_endpoint = "enabled"
@@ -91,6 +99,10 @@ resource "aws_instance" "database" {
   associate_public_ip_address = false
   key_name                    = local.resolved_key_name
   ebs_optimized               = true
+  user_data = templatefile("${path.module}/../../../cloud-init/database.cloud-init.yaml", {
+    tenant_id      = var.tenant_id
+    ssh_public_key = var.ssh_public_key != null ? var.ssh_public_key : ""
+  })
 
   metadata_options {
     http_endpoint = "enabled"

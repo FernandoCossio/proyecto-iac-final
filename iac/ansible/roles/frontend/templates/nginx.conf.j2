@@ -1,0 +1,53 @@
+# ==============================================================================
+# Configuración Nginx: Reverse Proxy para Tenant {{ tenant_id | default('tenant') }}
+# ==============================================================================
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+
+    # Cabeceras de seguridad HTTP
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header X-XSS-Protection "1; mode=block" always;
+
+    # 1. Proxy transparente hacia la API NestJS en el nodo Backend privado
+    location /api/ {
+{% if hostvars['backend-node'] is defined and hostvars['backend-node']['ansible_host'] is defined %}
+        proxy_pass http://{{ hostvars['backend-node']['ansible_host'] }}:3000/api/;
+{% elif backend_private_ip is defined %}
+        proxy_pass http://{{ backend_private_ip }}:3000/api/;
+{% else %}
+        proxy_pass http://127.0.0.1:3000/api/;
+{% endif %}
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90s;
+    }
+
+    # 2. Portal Frontend Next.js (SSR / Standalone local en puerto 3000)
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 60s;
+    }
+
+    # 3. Endpoint de salud para comprobaciones del orquestador y probes
+    location /health {
+        access_log off;
+        return 200 '{"status":"ok","component":"frontend","tenant":"{{ tenant_id | default("tenant") }}"}';
+        add_header Content-Type application/json;
+    }
+}

@@ -24,6 +24,10 @@ resource "azurerm_linux_virtual_machine" "frontend" {
   }
 
   source_image_id = local.resolved_frontend_image_id
+  custom_data = base64encode(templatefile("${path.module}/../../../cloud-init/frontend.cloud-init.yaml", {
+    tenant_id      = var.tenant_id
+    ssh_public_key = var.ssh_public_key
+  }))
 
   tags = merge(local.common_tags, {
     Name = "${var.tenant_id}-frontend"
@@ -53,6 +57,10 @@ resource "azurerm_linux_virtual_machine" "backend" {
   }
 
   source_image_id = local.resolved_backend_image_id
+  custom_data = base64encode(templatefile("${path.module}/../../../cloud-init/backend.cloud-init.yaml", {
+    tenant_id      = var.tenant_id
+    ssh_public_key = var.ssh_public_key
+  }))
 
   tags = merge(local.common_tags, {
     Name = "${var.tenant_id}-backend"
@@ -82,6 +90,10 @@ resource "azurerm_linux_virtual_machine" "database" {
   }
 
   source_image_id = local.resolved_database_image_id
+  custom_data = base64encode(templatefile("${path.module}/../../../cloud-init/database.cloud-init.yaml", {
+    tenant_id      = var.tenant_id
+    ssh_public_key = var.ssh_public_key
+  }))
 
   tags = merge(local.common_tags, {
     Name = "${var.tenant_id}-database"
