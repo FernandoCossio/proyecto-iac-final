@@ -53,12 +53,14 @@ export function createAzureCompute(config: TenantConfig, network: AzureNetworkRe
         createOption: "FromImage",
         diskSizeGB: hardware.diskSizeGB,
       },
-      imageReference: {
-        publisher: "Canonical",
-        offer: "0001-com-ubuntu-server-jammy",
-        sku: "22_04-lts-gen2",
-        version: "latest",
-      },
+      imageReference: config.frontendImageId
+        ? { id: config.frontendImageId }
+        : {
+            publisher: "Canonical",
+            offer: "0001-com-ubuntu-server-jammy",
+            sku: "22_04-lts-gen2",
+            version: "latest",
+          },
     },
     tags: {
       ...commonTags,
@@ -98,12 +100,14 @@ export function createAzureCompute(config: TenantConfig, network: AzureNetworkRe
         createOption: "FromImage",
         diskSizeGB: hardware.diskSizeGB,
       },
-      imageReference: {
-        publisher: "Canonical",
-        offer: "0001-com-ubuntu-server-jammy",
-        sku: "22_04-lts-gen2",
-        version: "latest",
-      },
+      imageReference: config.backendImageId
+        ? { id: config.backendImageId }
+        : {
+            publisher: "Canonical",
+            offer: "0001-com-ubuntu-server-jammy",
+            sku: "22_04-lts-gen2",
+            version: "latest",
+          },
     },
     tags: {
       ...commonTags,
@@ -143,12 +147,14 @@ export function createAzureCompute(config: TenantConfig, network: AzureNetworkRe
         createOption: "FromImage",
         diskSizeGB: hardware.diskSizeGB,
       },
-      imageReference: {
-        publisher: "Canonical",
-        offer: "0001-com-ubuntu-server-jammy",
-        sku: "22_04-lts-gen2",
-        version: "latest",
-      },
+      imageReference: config.databaseImageId
+        ? { id: config.databaseImageId }
+        : {
+            publisher: "Canonical",
+            offer: "0001-com-ubuntu-server-jammy",
+            sku: "22_04-lts-gen2",
+            version: "latest",
+          },
     },
     tags: {
       ...commonTags,

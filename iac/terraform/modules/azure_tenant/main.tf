@@ -19,26 +19,27 @@ terraform {
 
 locals {
   # Catálogo dinámico de VM Sizes y discos en Azure según el Plan
+  # Compatible tanto con regiones modernas (ej. spaincentral con v2) como tradicionales
   plan_configs = {
     basico = {
-      frontend_size = "Standard_B1ls"
-      backend_size  = "Standard_B1ls"
-      db_size       = "Standard_B1s"
-      disk_size_gb  = 10
+      frontend_size = "Standard_B2ls_v2"
+      backend_size  = "Standard_B2ls_v2"
+      db_size       = "Standard_B2s_v2"
+      disk_size_gb  = 30
       storage_type  = "Standard_LRS"
     }
     estandar = {
-      frontend_size = "Standard_B1s"
-      backend_size  = "Standard_B1s"
-      db_size       = "Standard_B2s"
-      disk_size_gb  = 20
+      frontend_size = "Standard_B2s_v2"
+      backend_size  = "Standard_B2s_v2"
+      db_size       = "Standard_B2s_v2"
+      disk_size_gb  = 30
       storage_type  = "StandardSSD_LRS"
     }
     avanzado = {
-      frontend_size = "Standard_B2s"
-      backend_size  = "Standard_B2s"
-      db_size       = "Standard_B2ms"
-      disk_size_gb  = 30
+      frontend_size = "Standard_B2s_v2"
+      backend_size  = "Standard_B4s_v2"
+      db_size       = "Standard_B4s_v2"
+      disk_size_gb  = 50
       storage_type  = "Premium_LRS"
     }
   }

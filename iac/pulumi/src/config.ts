@@ -16,6 +16,9 @@ export interface TenantConfig {
   publicSubnetCidr: string;
   privateBackendSubnetCidr: string;
   isolatedDbSubnetCidr: string;
+  frontendImageId?: string;
+  backendImageId?: string;
+  databaseImageId?: string;
 }
 
 export function loadTenantConfig(): TenantConfig {
@@ -32,6 +35,9 @@ export function loadTenantConfig(): TenantConfig {
   const publicSubnetCidr = config.get("publicSubnetCidr") || (cloud === "aws" ? "10.0.1.0/24" : "10.20.1.0/24");
   const privateBackendSubnetCidr = config.get("privateBackendSubnetCidr") || (cloud === "aws" ? "10.0.2.0/24" : "10.20.2.0/24");
   const isolatedDbSubnetCidr = config.get("isolatedDbSubnetCidr") || (cloud === "aws" ? "10.0.3.0/24" : "10.20.3.0/24");
+  const frontendImageId = config.get("frontendImageId");
+  const backendImageId = config.get("backendImageId");
+  const databaseImageId = config.get("databaseImageId");
 
   return {
     id,
@@ -47,5 +53,8 @@ export function loadTenantConfig(): TenantConfig {
     publicSubnetCidr,
     privateBackendSubnetCidr,
     isolatedDbSubnetCidr,
+    frontendImageId,
+    backendImageId,
+    databaseImageId,
   };
 }

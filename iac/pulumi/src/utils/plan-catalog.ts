@@ -28,21 +28,21 @@ export const AWS_PLAN_CATALOG: Record<string, PlanHardwareConfig> = {
 
 export const AZURE_PLAN_CATALOG: Record<string, PlanHardwareConfig> = {
   basico: {
-    frontendType: "Standard_B1ls",
-    backendType: "Standard_B1ls",
-    databaseType: "Standard_B1s",
-    diskSizeGB: 10,
+    frontendType: "Standard_B2ls_v2",
+    backendType: "Standard_B2ls_v2",
+    databaseType: "Standard_B2s_v2",
+    diskSizeGB: 30,
   },
   estandar: {
-    frontendType: "Standard_B1s",
-    backendType: "Standard_B1s",
-    databaseType: "Standard_B2s",
-    diskSizeGB: 20,
+    frontendType: "Standard_B2s_v2",
+    backendType: "Standard_B2s_v2",
+    databaseType: "Standard_B2s_v2",
+    diskSizeGB: 30,
   },
   avanzado: {
-    frontendType: "Standard_B2s",
-    backendType: "Standard_B2s",
-    databaseType: "Standard_B2ms",
-    diskSizeGB: 30,
+    frontendType: "Standard_B2s_v2",
+    backendType: "Standard_B4s_v2",
+    databaseType: "Standard_B4s_v2",
+    diskSizeGB: 50,
   },
 };
