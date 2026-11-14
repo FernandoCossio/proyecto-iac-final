@@ -68,6 +68,9 @@ docs/
 .tofu/
 .tofu.lock.hcl
 .pulumi/
+iac/pulumi/Pulumi.*.yaml
+!iac/pulumi/Pulumi.yaml
+!iac/pulumi/Pulumi.example.yaml
 
 # Generated Ansible inventories
 iac/ansible/inventory/*.ini

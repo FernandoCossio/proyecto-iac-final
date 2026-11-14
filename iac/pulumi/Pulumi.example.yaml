@@ -1,0 +1,9 @@
+config:
+  tenant:id: "colegio-san-martin"
+  tenant:cloud: "aws"
+  tenant:plan: "basico"
+  tenant:environment: "dev"
+  tenant:region: "us-east-2"
+  tenant:adminSshIp: "0.0.0.0/0"
+  tenant:sshKeyName: "iac-asistencia"
+  tenant:sshPrivateKeyPath: "~/.ssh/iac-asistencia.pem"
