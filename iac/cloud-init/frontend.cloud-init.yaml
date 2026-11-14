@@ -1,0 +1,28 @@
+#cloud-config
+# ==============================================================================
+# Cloud-Init: Nodo Frontend (Next.js SSR + Nginx Reverse Proxy + Bastion SSH)
+# ==============================================================================
+hostname: ${tenant_id}-frontend
+fqdn: ${tenant_id}-frontend.local
+manage_etc_hosts: true
+
+users:
+  - default
+  - name: ubuntu
+    gecos: Ubuntu Operator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+package_update: true
+packages:
+  - python3
+  - python3-apt
+  - curl
+  - jq
+
+runcmd:
+  - echo "[Cloud-Init] Frontend node initialized successfully" > /var/log/cloud-init-status.log

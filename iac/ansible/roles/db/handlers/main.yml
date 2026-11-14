@@ -1,0 +1,9 @@
+---
+# ==============================================================================
+# Handlers: Role db
+# ==============================================================================
+
+- name: Reiniciar postgresql
+  ansible.builtin.systemd:
+    name: postgresql
+    state: restarted

@@ -1,0 +1,24 @@
+# ==============================================================================
+# Configuración Centralizada de Checkov (Quality Gate DevSecOps)
+# ==============================================================================
+soft-fail: false
+framework:
+  - terraform
+  - cloudformation
+  - ansible
+output: cli
+compact: true
+quiet: false
+skip-path:
+  - ".terraform"
+  - "node_modules"
+  - "dist"
+  - ".next"
+  - "docs"
+skip-check:
+  # Omitidos justificadamente para disciplina de costo $0 en entorno academico:
+  - CKV_AWS_126   # Monitoreo detallado incurre en costo CloudWatch mensual
+  - CKV2_AWS_11   # VPC Flow Logs incurre en costo de ingesta CloudWatch/S3
+  - CKV2_AWS_12   # Reglas en Security Group por defecto de la VPC (se usan SGs dedicados)
+  - CKV2_AWS_41   # Rol IAM en EC2 no requerido (instancias no invocan APIs de AWS)
+  - CKV_AZURE_50  # Extensiones de VM de Azure no requeridas

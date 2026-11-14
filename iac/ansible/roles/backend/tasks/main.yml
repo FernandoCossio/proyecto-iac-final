@@ -1,0 +1,107 @@
+---
+# ==============================================================================
+# Role: backend
+# Propósito: Configuración de entorno NestJS, migraciones y bootstrap admin
+# ==============================================================================
+
+- name: Asegurar existencia del directorio de la aplicacion backend
+  ansible.builtin.file:
+    path: /var/www/backend
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Asegurar que git este instalado
+  ansible.builtin.apt:
+    name: git
+    state: present
+    update_cache: false
+
+- name: Verificar si el codigo de la aplicacion esta presente
+  ansible.builtin.stat:
+    path: /var/www/backend/package.json
+  register: backend_package_json
+
+- name: Clonar repositorio del proyecto de asistencia para Backend
+  ansible.builtin.git:
+    repo: "https://github.com/FernandoCossio/proyecto-iac-final.git"
+    dest: /tmp/asistencia-repo
+    version: develop
+    force: true
+  when: not backend_package_json.stat.exists
+
+- name: Copiar directorio backend a /var/www/backend
+  ansible.builtin.copy:
+    src: /tmp/asistencia-repo/backend/
+    dest: /var/www/backend/
+    remote_src: true
+    owner: ubuntu
+    group: ubuntu
+  when: not backend_package_json.stat.exists
+
+- name: Instalar dependencias npm del backend
+  ansible.builtin.command:
+    cmd: npm install
+    chdir: /var/www/backend
+  become_user: ubuntu
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  when: not backend_package_json.stat.exists
+
+- name: Compilar aplicacion NestJS
+  ansible.builtin.command:
+    cmd: npm run build
+    chdir: /var/www/backend
+  become_user: ubuntu
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  when: not backend_package_json.stat.exists
+
+- name: Desplegar archivo de configuracion .env para NestJS
+  ansible.builtin.template:
+    src: backend.env.j2
+    dest: /var/www/backend/.env
+    owner: ubuntu
+    group: ubuntu
+    mode: "0600"
+  no_log: true
+  notify: Reiniciar backend pm2
+
+- name: Ejecutar bootstrap limpio del Administrador del Tenant (Fase 0)
+  ansible.builtin.command:
+    cmd: >
+      npm run init:tenant-admin --
+      --email="{{ tenant_admin_email }}"
+      --username="{{ tenant_admin_username }}"
+      --password="{{ tenant_admin_password }}"
+      --fullname="{{ tenant_admin_fullname }}"
+    chdir: /var/www/backend
+  become_user: ubuntu
+  environment:
+    NODE_ENV: production
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  when: tenant_admin_email is defined
+  no_log: true
+  register: admin_init_result
+  changed_when: admin_init_result.rc == 0
+
+- name: Verificar o iniciar el proceso backend con PM2
+  ansible.builtin.command:
+    cmd: pm2 start dist/main.js --name backend --time
+    chdir: /var/www/backend
+  become_user: ubuntu
+  environment:
+    NODE_ENV: production
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  register: pm2_start_result
+  changed_when: pm2_start_result.rc == 0
+  failed_when: false
+
+- name: Guardar lista de procesos en PM2
+  ansible.builtin.command:
+    cmd: pm2 save
+  become_user: ubuntu
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:/bin"
+  changed_when: false

@@ -1,0 +1,18 @@
+{
+  "name": "iac-asistencia-pulumi",
+  "version": "1.0.0",
+  "description": "Aprovisionamiento de Infraestructura Multi-Cloud (AWS y Azure) por Tenant con Pulumi TypeScript",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^6.50.0",
+    "@pulumi/azure-native": "^2.60.0",
+    "@pulumi/pulumi": "^3.130.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.4.5"
+  }
+}

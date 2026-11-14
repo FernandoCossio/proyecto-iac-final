@@ -1,0 +1,25 @@
+# ==============================================================================
+# Configuración de Gitleaks para Detección de Secretos (DevSecOps)
+# ==============================================================================
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Archivos de ejemplo, documentación y directorios de compilación sin secretos reales"
+paths = [
+  '''\.env\.example$''',
+  '''\.env\..*\.example$''',
+  '''terraform\.tfvars\.example$''',
+  '''tofu\.tfvars\.example$''',
+  '''Pulumi\.example\.yaml$''',
+  '''specs/.*\.md$''',
+  '''docs/''',
+  '''node_modules/''',
+  '''\.next/''',
+  '''dist/''',
+  '''build/''',
+  '''\.terraform/'''
+]
+regexes = [
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.\.\.'''
+]

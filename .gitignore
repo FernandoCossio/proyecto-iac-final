@@ -50,3 +50,35 @@ docs/
 
 # Keys & certificates
 *.pem
+
+# IaC, Packer & Terraform Variables
+*.pkrvars.hcl
+!*.pkrvars.hcl.example
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.json.example
+*extra-vars*.yml
+*extra-vars*.yaml
+
+# Terraform, OpenTofu & Pulumi State / Cache
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
+.tofu/
+.tofu.lock.hcl
+.pulumi/
+iac/pulumi/Pulumi.*.yaml
+!iac/pulumi/Pulumi.yaml
+!iac/pulumi/Pulumi.example.yaml
+
+# Generated Ansible inventories
+iac/ansible/inventory/*.ini
+!iac/ansible/inventory/.gitkeep
+
+# CloudFormation Parameters
+iac/cloudformation/parameters/*.json
+!iac/cloudformation/parameters/*.example
+

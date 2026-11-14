@@ -1,0 +1,13 @@
+# Plantilla de ejemplo para variables de Azure en Packer
+# Copie este archivo como 'vars.pkrvars.hcl' y defina sus valores reales (ignorado por Git)
+
+azure_subscription_id = "<tu-subscription-id>"
+azure_client_id       = "<tu-client-id>"
+azure_client_secret   = "<tu-client-secret>"
+azure_tenant_id       = "<tu-tenant-id>"
+azure_resource_group  = "<tu-resource-group>"
+azure_location        = "eastus"
+vm_size               = "Standard_B1s"
+image_prefix          = "asistencia"
+app_version           = "1.0.0"
+ssh_username          = "ubuntu"

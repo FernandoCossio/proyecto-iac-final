@@ -1,0 +1,28 @@
+#cloud-config
+# ==============================================================================
+# Cloud-Init: Nodo Database (PostgreSQL 16 - Capa Aislada)
+# ==============================================================================
+hostname: ${tenant_id}-db
+fqdn: ${tenant_id}-db.local
+manage_etc_hosts: true
+
+users:
+  - default
+  - name: ubuntu
+    gecos: Ubuntu Operator
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+package_update: true
+packages:
+  - python3
+  - python3-apt
+  - curl
+  - jq
+
+runcmd:
+  - echo "[Cloud-Init] Database node initialized successfully" > /var/log/cloud-init-status.log

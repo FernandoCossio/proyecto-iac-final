@@ -1,0 +1,19 @@
+{
+  "name": "tenant-security-policies",
+  "version": "1.0.0",
+  "description": "Pulumi CrossGuard Policy Pack para cumplimiento de seguridad en tenants",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^6.25.0",
+    "@pulumi/azure-native": "^2.33.0",
+    "@pulumi/policy": "^1.13.0",
+    "@pulumi/pulumi": "^3.111.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  }
+}
