@@ -1,0 +1,3 @@
+name: iac-asistencia-pulumi
+runtime: nodejs
+description: "Aprovisionamiento de Infraestructura 3 Capas por Tenant en AWS y Azure con Pulumi"
