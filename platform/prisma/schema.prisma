@@ -1,0 +1,85 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("PLATFORM_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// 1. Administradores de la Plataforma (Acceso Protegido)
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         String   @default("ADMIN")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// 2. Tenants Administrados
+model Tenant {
+  id                String          @id // Slug único (ej: san-marcos)
+  name              String          // Nombre institucional (ej: Instituto San Marcos)
+  adminEmail        String
+  cloudProvider     String          @default("aws") // aws, azure
+  region            String          @default("us-east-1")
+  environment       String          @default("prod") // dev, staging, prod
+  planId            String          // basico, estandar, avanzado
+  iacEngine         String          @default("terraform") // terraform, opentofu, cloudformation, pulumi
+  status            String          @default("CREATING") // CREATING, ACTIVE, SUSPENDED, FAILED, TERMINATED
+  
+  // Direcciones IP de la Infraestructura
+  frontendPublicIp  String?
+  frontendPrivateIp String?
+  backendPrivateIp  String?
+  databasePrivateIp String?
+  
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  deploymentJobs    DeploymentJob[]
+}
+
+// 3. Catálogo Fijo de Planes (Informativo / Dimensionamiento)
+model Plan {
+  id               String   @id // basico, estandar, avanzado
+  displayName      String   // Básico, Estándar, Avanzado
+  description      String
+  maxStudents      Int
+  diskSizeGb       Int
+  awsInstanceType  String   // t3.micro, t3.small, c7i-flex.large
+  azureVmSize      String   // Standard_B1s, Standard_B2s_v2, Standard_B4s_v2
+  isAvailable      Boolean  @default(true)
+}
+
+// 4. Trabajos de Despliegue y Operaciones Asíncronas
+model DeploymentJob {
+  id           String    @id @default(uuid())
+  tenantId     String
+  operation    String    // CREATE, SUSPEND, RESUME, DESTROY
+  engine       String    // terraform, opentofu, cloudformation, pulumi, ansible, cli
+  status       String    @default("QUEUED") // QUEUED, RUNNING, SUCCESS, FAILED
+  startedAt    DateTime?
+  completedAt  DateTime?
+  exitCode     Int?
+  errorMessage String?
+  
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  logs         JobLog[]
+}
+
+// 5. Registros de Consola Sanitizados para Streaming y Consulta
+model JobLog {
+  id        Int           @id @default(autoincrement())
+  jobId     String
+  stage     String        // IAC, ANSIBLE, SYSTEM, HEALTH_CHECK
+  stream    String        @default("stdout") // stdout, stderr
+  message   String
+  timestamp DateTime      @default(now())
+  
+  job       DeploymentJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
