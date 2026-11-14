@@ -58,6 +58,8 @@ docs/
 *.tfvars.json
 !*.tfvars.example
 !*.tfvars.json.example
+*extra-vars*.yml
+*extra-vars*.yaml
 
 # Terraform, OpenTofu & Pulumi State / Cache
 .terraform/
