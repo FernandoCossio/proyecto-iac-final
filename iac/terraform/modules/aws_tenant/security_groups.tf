@@ -4,6 +4,9 @@
 
 # 1. Security Group: Frontend (Expuesto al público en 80/443 + SSH Restringido)
 resource "aws_security_group" "frontend" {
+  #checkov:skip=CKV_AWS_260:Frontend requires public HTTP ingress for web traffic
+  #checkov:skip=CKV_AWS_24:SSH ingress allows administrator access per configurable variable
+  #checkov:skip=CKV_AWS_382:Egress to internet required for OS packages, updates, and APIs
   name        = "${var.tenant_id}-sg-frontend"
   description = "Reglas de trafico para Frontend y Bastion SSH"
   vpc_id      = aws_vpc.tenant_vpc.id
@@ -37,6 +40,7 @@ resource "aws_security_group" "frontend" {
 
   # Salida libre hacia Internet y VPC
   egress {
+    description = "Salida general a internet para actualizaciones y resolucion de dependencias"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -75,6 +79,7 @@ resource "aws_security_group" "backend" {
 
   # Salida hacia subredes de la VPC (ej: conexion a DB)
   egress {
+    description = "Salida hacia la VPC"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -113,6 +118,7 @@ resource "aws_security_group" "database" {
 
   # Salida restringida a la VPC interna
   egress {
+    description = "Salida hacia la VPC"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

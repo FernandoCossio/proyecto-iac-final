@@ -238,6 +238,13 @@ Resources:
   # ============================================================================
   FrontendSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    Metadata:
+      checkov:
+        skip:
+          - id: "CKV_AWS_260"
+            comment: "El puerto 80 publico es obligatorio para el Frontend del portal de asistencia"
+          - id: "CKV_AWS_24"
+            comment: "El puerto 22 SSH es administrado segun parametro AdminSshIp"
     Properties:
       GroupDescription: "Frontend SG: HTTP/HTTPS publico y SSH desde AdminSshIp"
       VpcId: !Ref VPC

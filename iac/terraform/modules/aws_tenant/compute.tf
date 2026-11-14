@@ -17,12 +17,19 @@ locals {
 
 # 2. Instancia Frontend (Next.js SSR + Nginx Reverse Proxy + Bastion SSH)
 resource "aws_instance" "frontend" {
+  #checkov:skip=CKV_AWS_88:Frontend instance is intentionally public-facing as student web entrypoint
   ami                         = data.aws_ami.frontend.id
   instance_type               = local.selected_plan.frontend_type
   subnet_id                   = aws_subnet.frontend.id
   vpc_security_group_ids      = [aws_security_group.frontend.id]
   associate_public_ip_address = true
   key_name                    = local.resolved_key_name
+  ebs_optimized               = true
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
 
   root_block_device {
     volume_size           = local.selected_plan.disk_size_gb
@@ -50,6 +57,12 @@ resource "aws_instance" "backend" {
   vpc_security_group_ids      = [aws_security_group.backend.id]
   associate_public_ip_address = false
   key_name                    = local.resolved_key_name
+  ebs_optimized               = true
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
 
   root_block_device {
     volume_size           = local.selected_plan.disk_size_gb
@@ -77,6 +90,12 @@ resource "aws_instance" "database" {
   vpc_security_group_ids      = [aws_security_group.database.id]
   associate_public_ip_address = false
   key_name                    = local.resolved_key_name
+  ebs_optimized               = true
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
 
   root_block_device {
     volume_size           = local.selected_plan.disk_size_gb
