@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawn, execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import { prisma } from "../prisma";
@@ -139,6 +139,32 @@ function prepareTenantFiles(
           .relative(tenantDir, path.join(REPO_ROOT, "iac", "terraform", "modules", "azure_tenant"))
           .replace(/\\/g, "/");
 
+  // Obtener la llave pública SSH para Azure desde ~/.ssh/
+  let sshPublicKey = "";
+  const sshDir = path.join(process.env.USERPROFILE || "", ".ssh");
+  const pubKeyPath = path.join(sshDir, "iac-asistencia.pub");
+  const pemKeyPath = path.join(sshDir, "iac-asistencia.pem");
+
+  if (fs.existsSync(pubKeyPath)) {
+    sshPublicKey = fs.readFileSync(pubKeyPath, "utf-8").trim();
+  } else if (fs.existsSync(pemKeyPath)) {
+    try {
+      sshPublicKey = execSync(`ssh-keygen -y -f "${pemKeyPath}"`)
+        .toString()
+        .trim();
+      fs.writeFileSync(pubKeyPath, sshPublicKey + "\n", "utf-8");
+    } catch (err) {
+      console.warn("[Runner] No se pudo extraer la clave pública con ssh-keygen:", err);
+    }
+  }
+
+  // IDs de Managed Images de Packer en Azure (Resource Group RG-ASISTENCIA-IMAGES en spaincentral)
+  const defaultAzureImages = {
+    frontend: "/subscriptions/66332a52-0b12-47be-9df5-9d4bb3a43cb5/resourceGroups/RG-ASISTENCIA-IMAGES/providers/Microsoft.Compute/images/asistencia-frontend-1.0.0-1794660002",
+    backend: "/subscriptions/66332a52-0b12-47be-9df5-9d4bb3a43cb5/resourceGroups/RG-ASISTENCIA-IMAGES/providers/Microsoft.Compute/images/asistencia-backend-1.0.0-1794660356",
+    database: "/subscriptions/66332a52-0b12-47be-9df5-9d4bb3a43cb5/resourceGroups/RG-ASISTENCIA-IMAGES/providers/Microsoft.Compute/images/asistencia-database-1.0.0-1794660714",
+  };
+
   // 1. main.tf dedicado para este tenant
   const mainTfContent = `
 terraform {
@@ -152,7 +178,7 @@ terraform {
     }`
         : `azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0"
+      version = "~> 3.95"
     }`
     }
     local = {
@@ -178,7 +204,16 @@ module "tenant" {
   ${tenant.cloudProvider === "aws" ? `aws_region = var.aws_region` : `azure_location = var.azure_location`}
   plan                        = var.plan
   admin_ssh_ip                = var.admin_ssh_ip
-  ssh_key_name                = var.ssh_key_name
+  ${
+    tenant.cloudProvider === "aws"
+      ? `ssh_key_name                = var.ssh_key_name`
+      : `ssh_public_key               = var.ssh_public_key
+  ssh_private_key_path         = var.ssh_private_key_path
+  managed_image_resource_group = "RG-ASISTENCIA-IMAGES"
+  frontend_image_id            = var.frontend_image_id
+  backend_image_id             = var.backend_image_id
+  database_image_id            = var.database_image_id`
+  }
   inventory_output_dir        = "."
 }
 
@@ -228,9 +263,35 @@ variable "admin_ssh_ip" {
   default = "0.0.0.0/0"
 }
 
-variable "ssh_key_name" {
+${
+  tenant.cloudProvider === "aws"
+    ? `variable "ssh_key_name" {
+  type    = string
+  default = "iac-asistencia"
+}`
+    : `variable "ssh_public_key" {
+  type = string
+}
+
+variable "ssh_private_key_path" {
+  type    = string
+  default = "~/.ssh/iac-asistencia.pem"
+}
+
+variable "frontend_image_id" {
   type    = string
   default = null
+}
+
+variable "backend_image_id" {
+  type    = string
+  default = null
+}
+
+variable "database_image_id" {
+  type    = string
+  default = null
+}`
 }
 `;
   fs.writeFileSync(path.join(tenantDir, "variables.tf"), variablesTfContent.trim(), "utf-8");
@@ -242,7 +303,15 @@ environment  = "${tenant.environment}"
 ${tenant.cloudProvider === "aws" ? `aws_region = "${tenant.region}"` : `azure_location = "${tenant.region}"`}
 plan         = "${tenant.planId}"
 admin_ssh_ip = "${tenant.allowedCidr || "0.0.0.0/0"}"
-ssh_key_name = "${tenant.sshKeyName || "iac-asistencia"}"
+${
+  tenant.cloudProvider === "aws"
+    ? `ssh_key_name = "${tenant.sshKeyName || "iac-asistencia"}"`
+    : `ssh_public_key       = "${sshPublicKey}"
+ssh_private_key_path = "~/.ssh/iac-asistencia.pem"
+frontend_image_id    = "${defaultAzureImages.frontend}"
+backend_image_id     = "${defaultAzureImages.backend}"
+database_image_id    = "${defaultAzureImages.database}"`
+}
 `;
   fs.writeFileSync(path.join(tenantDir, "terraform.tfvars"), tfvarsContent.trim(), "utf-8");
 }
@@ -549,23 +618,37 @@ export async function suspendTenant(tenantId: string, jobId: string): Promise<bo
     AWS_REGION: tenant.region || process.env.AWS_REGION || "us-east-1",
   };
 
-  // AWS CLI stop-instances por filtro de tag
-  const stopRes = await runProcess(
-    tenantId,
-    jobId,
-    "SUSPEND",
-    "aws",
-    [
-      "ec2",
-      "stop-instances",
-      "--filters",
-      `Name=tag:TenantId,Values=${tenantId}`,
-      "--region",
-      tenant.region,
-    ],
-    tenantDir,
-    envExtra
-  );
+  let stopRes;
+  if (tenant.cloudProvider === "azure") {
+    // Azure CLI deallocate VMs en el Resource Group del tenant
+    stopRes = await runProcess(
+      tenantId,
+      jobId,
+      "SUSPEND",
+      "az",
+      ["vm", "deallocate", "--resource-group", `rg-${tenantId}`, "--no-wait"],
+      tenantDir,
+      envExtra
+    );
+  } else {
+    // AWS CLI stop-instances por filtro de tag
+    stopRes = await runProcess(
+      tenantId,
+      jobId,
+      "SUSPEND",
+      "aws",
+      [
+        "ec2",
+        "stop-instances",
+        "--filters",
+        `Name=tag:TenantId,Values=${tenantId}`,
+        "--region",
+        tenant.region,
+      ],
+      tenantDir,
+      envExtra
+    );
+  }
 
   if (stopRes.code === 0) {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "SUSPENDED" } });
@@ -594,7 +677,72 @@ export async function resumeTenant(tenantId: string, jobId: string): Promise<boo
     AWS_REGION: tenant.region || process.env.AWS_REGION || "us-east-1",
   };
 
-  // 1. Iniciar instancias
+  if (tenant.cloudProvider === "azure") {
+    // 1. Iniciar instancias en Azure
+    const startRes = await runProcess(
+      tenantId,
+      jobId,
+      "RESUME",
+      "az",
+      ["vm", "start", "--resource-group", `rg-${tenantId}`],
+      tenantDir,
+      envExtra
+    );
+
+    if (startRes.code !== 0) {
+      await prisma.tenant.update({ where: { id: tenantId }, data: { status: "SUSPENDED" } });
+      sseBroadcaster.broadcast(tenantId, "status", { status: "SUSPENDED", error: startRes.stderr });
+      return false;
+    }
+
+    // 2. Esperar 10s y consultar nueva IP pública del Frontend en Azure
+    sseBroadcaster.broadcast(tenantId, "log", {
+      stage: "RESUME",
+      stream: "system",
+      message: "⏳ Consultando nueva IP pública del Frontend en Azure tras encendido...",
+      timestamp: new Date().toISOString(),
+    });
+    await new Promise((r) => setTimeout(r, 10000));
+
+    const queryIpRes = await runProcess(
+      tenantId,
+      jobId,
+      "RESUME_QUERY_IP",
+      "az",
+      [
+        "network",
+        "public-ip",
+        "show",
+        "--resource-group",
+        `rg-${tenantId}`,
+        "--name",
+        `pip-${tenantId}-frontend`,
+        "--query",
+        "ipAddress",
+        "-o",
+        "tsv",
+      ],
+      tenantDir,
+      envExtra
+    );
+
+    const newPublicIp = queryIpRes.stdout.trim().split(/\s+/)[0];
+    if (newPublicIp && !newPublicIp.includes("Error") && !newPublicIp.includes("WARNING")) {
+      await prisma.tenant.update({
+        where: { id: tenantId },
+        data: { frontendPublicIp: newPublicIp, status: "ACTIVE" },
+      });
+      sseBroadcaster.broadcast(tenantId, "ips", { frontendPublicIp: newPublicIp });
+      sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
+    } else {
+      await prisma.tenant.update({ where: { id: tenantId }, data: { status: "ACTIVE" } });
+      sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
+    }
+
+    return true;
+  }
+
+  // 1. Iniciar instancias en AWS
   const startRes = await runProcess(
     tenantId,
     jobId,
@@ -618,7 +766,7 @@ export async function resumeTenant(tenantId: string, jobId: string): Promise<boo
     return false;
   }
 
-  // 2. Esperar 15s y consultar la nueva IP pública del Frontend
+  // 2. Esperar 15s y consultar la nueva IP pública del Frontend en AWS
   sseBroadcaster.broadcast(tenantId, "log", {
     stage: "RESUME",
     stream: "system",
