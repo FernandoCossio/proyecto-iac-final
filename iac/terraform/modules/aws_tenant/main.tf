@@ -27,8 +27,8 @@ locals {
       disk_size_gb  = 10
     }
     estandar = {
-      frontend_type = "t3.micro"
-      backend_type  = "t3.micro"
+      frontend_type = "t3.small"
+      backend_type  = "t3.small"
       db_type       = "t3.small"
       disk_size_gb  = 20
     }
