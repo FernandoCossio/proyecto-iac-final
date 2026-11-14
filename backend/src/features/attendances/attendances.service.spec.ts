@@ -201,7 +201,9 @@ describe('AttendancesService', () => {
       mockQueryBuilder.getOne.mockResolvedValue(null);
 
       await expect(
-        service.checkIn('student-1', 'module-1', { registrationNumber: '1001' }),
+        service.checkIn('student-1', 'module-1', {
+          registrationNumber: '1001',
+        }),
       ).rejects.toThrow(NotClassDayException);
     });
 
@@ -217,21 +219,43 @@ describe('AttendancesService', () => {
       });
 
       await expect(
-        service.checkIn('student-1', 'module-1', { registrationNumber: '1001' }),
+        service.checkIn('student-1', 'module-1', {
+          registrationNumber: '1001',
+        }),
       ).rejects.toThrow(AlreadyMarkedAttendanceException);
     });
   });
 
   describe('getMyHistory', () => {
     it('debe retornar historial con clases pasadas sin marca como FALTA (RN-05) y calcular metricas', async () => {
-      const pastDate = '2026-10-01';
-      const todayDate = new Date().toISOString().split('T')[0];
-      const futureDate = '2026-10-25';
+      const now = new Date();
+      const past = new Date(now);
+      past.setDate(now.getDate() - 5);
+      const pastDate = past.toISOString().split('T')[0];
+      const todayDate = now.toISOString().split('T')[0];
+      const future = new Date(now);
+      future.setDate(now.getDate() + 5);
+      const futureDate = future.toISOString().split('T')[0];
 
       scheduleRepo.find = jest.fn().mockResolvedValue([
-        { id: 'sch-1', classDate: pastDate, startTime: '18:00', endTime: '21:00' },
-        { id: 'sch-2', classDate: todayDate, startTime: '18:00', endTime: '21:00' },
-        { id: 'sch-3', classDate: futureDate, startTime: '18:00', endTime: '21:00' },
+        {
+          id: 'sch-1',
+          classDate: pastDate,
+          startTime: '18:00',
+          endTime: '21:00',
+        },
+        {
+          id: 'sch-2',
+          classDate: todayDate,
+          startTime: '18:00',
+          endTime: '21:00',
+        },
+        {
+          id: 'sch-3',
+          classDate: futureDate,
+          startTime: '18:00',
+          endTime: '21:00',
+        },
       ]);
 
       attendanceRepo.find = jest.fn().mockResolvedValue([
