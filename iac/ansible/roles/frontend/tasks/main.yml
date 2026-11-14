@@ -50,7 +50,7 @@
 
 - name: Crear archivo de entorno para Frontend Next.js
   ansible.builtin.copy:
-    content: "NEXT_PUBLIC_API_URL=/api\nPORT=3000\nNODE_ENV=production\n"
+    content: "NEXT_PUBLIC_API_URL=/api/v1\nPORT=3000\nNODE_ENV=production\n"
     dest: /var/www/frontend/.env.local
     owner: ubuntu
     group: ubuntu
