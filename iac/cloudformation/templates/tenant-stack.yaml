@@ -1,0 +1,465 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Aprovisionamiento de Infraestructura 3-Capas por Tenant en AWS (Frontend, Backend, Database)"
+
+Parameters:
+  TenantId:
+    Type: String
+    Description: "Identificador único del tenant (slug minúsculas, ej: colegio-san-martin)"
+    AllowedPattern: "^[a-z0-9-]+$"
+    ConstraintDescription: "Debe contener solo letras minúsculas, números y guiones."
+
+  Plan:
+    Type: String
+    Default: Basico
+    AllowedValues: [Basico, Estandar, Avanzado]
+    Description: "Plan contratado por el tenant para dimensionamiento de cómputo y disco."
+
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, staging, prod]
+    Description: "Entorno de ejecución del tenant."
+
+  AmiFrontend:
+    Type: AWS::EC2::Image::Id
+    Description: "AMI ID de la imagen de Frontend producida por Packer."
+
+  AmiBackend:
+    Type: AWS::EC2::Image::Id
+    Description: "AMI ID de la imagen de Backend producida por Packer."
+
+  AmiDatabase:
+    Type: AWS::EC2::Image::Id
+    Description: "AMI ID de la imagen de Database producida por Packer."
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: "Nombre del KeyPair en AWS para acceso SSH."
+
+  AdminSshIp:
+    Type: String
+    Default: "0.0.0.0/0"
+    Description: "Bloque CIDR autorizado para acceso SSH al Frontend/Bastion."
+
+  VpcCidr:
+    Type: String
+    Default: "10.0.0.0/16"
+    Description: "Bloque CIDR principal de la VPC dedicada."
+
+  PublicSubnetCidr:
+    Type: String
+    Default: "10.0.1.0/24"
+    Description: "Bloque CIDR de la subred pública Frontend."
+
+  PrivateBackendSubnetCidr:
+    Type: String
+    Default: "10.0.2.0/24"
+    Description: "Bloque CIDR de la subred privada Backend."
+
+  IsolatedDbSubnetCidr:
+    Type: String
+    Default: "10.0.3.0/24"
+    Description: "Bloque CIDR de la subred aislada Database."
+
+Mappings:
+  PlanConfig:
+    Basico:
+      FrontendType: "t3.micro"
+      BackendType: "t3.micro"
+      DatabaseType: "t3.micro"
+      DiskSizeGB: 10
+    Estandar:
+      FrontendType: "t3.micro"
+      BackendType: "t3.micro"
+      DatabaseType: "t3.small"
+      DiskSizeGB: 20
+    Avanzado:
+      FrontendType: "t3.small"
+      BackendType: "t3.small"
+      DatabaseType: "t3.medium"
+      DiskSizeGB: 30
+
+Resources:
+  # ============================================================================
+  # 1. Redes: VPC, Internet Gateway y Subredes de 3 Capas
+  # ============================================================================
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-vpc"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Plan
+          Value: !Ref Plan
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-igw"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnetCidr
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-subnet-frontend-public"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Frontend
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  PrivateBackendSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateBackendSubnetCidr
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-subnet-backend-private"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Backend
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  IsolatedDbSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref IsolatedDbSubnetCidr
+      MapPublicIpOnLaunch: false
+      AvailabilityZone: !Select [0, !GetAZs ""]
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-subnet-db-isolated"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Database
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-rt-public"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-rt-private"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  PrivateBackendSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateBackendSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  IsolatedDbSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref IsolatedDbSubnet
+      RouteTableId: !Ref PrivateRouteTable
+
+  # ============================================================================
+  # 2. Seguridad: Security Groups Encadenados por Capa
+  # ============================================================================
+  FrontendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Frontend SG: HTTP/HTTPS publico y SSH desde AdminSshIp"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: "0.0.0.0/0"
+          Description: "HTTP publico"
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: "0.0.0.0/0"
+          Description: "HTTPS publico"
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref AdminSshIp
+          Description: "SSH de administracion al Bastion"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+          Description: "Salida libre"
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-sg-frontend"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Frontend
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  BackendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Backend SG: API 3000 y SSH solo desde Frontend SG"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref FrontendSecurityGroup
+          Description: "API NestJS desde Frontend"
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !Ref FrontendSecurityGroup
+          Description: "SSH Bastion desde Frontend"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+          Description: "Salida interna"
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-sg-backend"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Backend
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Database SG: PostgreSQL 5432 desde Backend SG y SSH desde Frontend SG"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref BackendSecurityGroup
+          Description: "PostgreSQL 16 exclusivo desde Backend"
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !Ref FrontendSecurityGroup
+          Description: "SSH Bastion desde Frontend"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: "0.0.0.0/0"
+          Description: "Salida interna"
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-sg-database"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Database
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # ============================================================================
+  # 3. Cómputo: 3 Instancias EC2 Dedicadas
+  # ============================================================================
+  FrontendInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiFrontend
+      InstanceType: !FindInMap [PlanConfig, !Ref Plan, FrontendType]
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref FrontendSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: !FindInMap [PlanConfig, !Ref Plan, DiskSizeGB]
+            VolumeType: "gp3"
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-frontend"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Frontend
+        - Key: Plan
+          Value: !Ref Plan
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  BackendInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiBackend
+      InstanceType: !FindInMap [PlanConfig, !Ref Plan, BackendType]
+      KeyName: !Ref KeyName
+      SubnetId: !Ref PrivateBackendSubnet
+      SecurityGroupIds:
+        - !Ref BackendSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: !FindInMap [PlanConfig, !Ref Plan, DiskSizeGB]
+            VolumeType: "gp3"
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-backend"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Backend
+        - Key: Plan
+          Value: !Ref Plan
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  DatabaseInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref AmiDatabase
+      InstanceType: !FindInMap [PlanConfig, !Ref Plan, DatabaseType]
+      KeyName: !Ref KeyName
+      SubnetId: !Ref IsolatedDbSubnet
+      SecurityGroupIds:
+        - !Ref DatabaseSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sda1"
+          Ebs:
+            VolumeSize: !FindInMap [PlanConfig, !Ref Plan, DiskSizeGB]
+            VolumeType: "gp3"
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-database"
+        - Key: TenantId
+          Value: !Ref TenantId
+        - Key: Tier
+          Value: Database
+        - Key: Plan
+          Value: !Ref Plan
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: SistemaAsistencia
+        - Key: ManagedBy
+          Value: CloudFormation
+
+# ==============================================================================
+# 4. Outputs: Contrato Exportado para la Generación de Inventario Ansible
+# ==============================================================================
+Outputs:
+  TenantId:
+    Description: "ID del tenant aprovisionado"
+    Value: !Ref TenantId
+
+  VpcId:
+    Description: "ID de la VPC dedicada creada para el tenant"
+    Value: !Ref VPC
+
+  FrontendPublicIp:
+    Description: "IP pública del Frontend (Punto de acceso y Bastion SSH)"
+    Value: !GetAtt FrontendInstance.PublicIp
+
+  FrontendPrivateIp:
+    Description: "IP privada interna del Frontend"
+    Value: !GetAtt FrontendInstance.PrivateIp
+
+  BackendPrivateIp:
+    Description: "IP privada del Backend NestJS"
+    Value: !GetAtt BackendInstance.PrivateIp
+
+  DatabasePrivateIp:
+    Description: "IP privada de PostgreSQL 16"
+    Value: !GetAtt DatabaseInstance.PrivateIp

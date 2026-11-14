@@ -1,0 +1,34 @@
+[
+  {
+    "ParameterKey": "TenantId",
+    "ParameterValue": "tenant-demo"
+  },
+  {
+    "ParameterKey": "Plan",
+    "ParameterValue": "Estandar"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "staging"
+  },
+  {
+    "ParameterKey": "AmiFrontend",
+    "ParameterValue": "ami-0131a0853d409b8dc"
+  },
+  {
+    "ParameterKey": "AmiBackend",
+    "ParameterValue": "ami-093b6ecfd7c117e60"
+  },
+  {
+    "ParameterKey": "AmiDatabase",
+    "ParameterValue": "ami-0aec5e4a531a4806a"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "iac-asistencia"
+  },
+  {
+    "ParameterKey": "AdminSshIp",
+    "ParameterValue": "0.0.0.0/0"
+  }
+]
