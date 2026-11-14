@@ -103,6 +103,8 @@
     chdir: /var/www/frontend
   become_user: ubuntu
   environment:
+    HOME: "/home/ubuntu"
+    PM2_HOME: "/home/ubuntu/.pm2"
     NODE_ENV: production
     PATH: "/usr/local/bin:/usr/bin:/bin"
   register: pm2_frontend_start_result
@@ -114,5 +116,7 @@
     cmd: pm2 save
   become_user: ubuntu
   environment:
+    HOME: "/home/ubuntu"
+    PM2_HOME: "/home/ubuntu/.pm2"
     PATH: "/usr/local/bin:/usr/bin:/bin"
   changed_when: false
