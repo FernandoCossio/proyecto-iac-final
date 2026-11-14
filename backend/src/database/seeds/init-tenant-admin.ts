@@ -126,7 +126,7 @@ export async function runInitTenantAdmin(
           type: 'postgres',
           url: process.env.DATABASE_URL,
           entities: APP_ENTITIES,
-          synchronize: false,
+          synchronize: process.env.DB_SYNCHRONIZE === 'true',
           ssl: sslConfig,
         })
       : new DataSource({
@@ -137,7 +137,7 @@ export async function runInitTenantAdmin(
           password: process.env.DB_PASSWORD || 'postgres',
           database: process.env.DB_NAME || 'asistencia_db',
           entities: APP_ENTITIES,
-          synchronize: false,
+          synchronize: process.env.DB_SYNCHRONIZE === 'true',
           ssl: sslConfig,
         });
 
