@@ -38,6 +38,15 @@ resource "aws_security_group" "frontend" {
     cidr_blocks = [var.admin_ssh_ip]
   }
 
+  # Forwarding NAT desde VPC
+  ingress {
+    description = "Forwarding NAT desde subredes internas de la VPC"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [var.vpc_cidr]
+  }
+
   # Salida libre hacia Internet y VPC
   egress {
     description = "Salida general a internet para actualizaciones y resolucion de dependencias"
@@ -77,13 +86,13 @@ resource "aws_security_group" "backend" {
     security_groups = [aws_security_group.frontend.id]
   }
 
-  # Salida hacia subredes de la VPC (ej: conexion a DB)
+  # Salida hacia subredes de la VPC y a Internet via NAT Bastion
   egress {
-    description = "Salida hacia la VPC"
+    description = "Salida hacia la VPC y salida a Internet via NAT"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [var.vpc_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = merge(local.common_tags, {

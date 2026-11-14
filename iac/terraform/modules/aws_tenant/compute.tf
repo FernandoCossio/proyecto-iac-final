@@ -23,6 +23,7 @@ resource "aws_instance" "frontend" {
   subnet_id                   = aws_subnet.frontend.id
   vpc_security_group_ids      = [aws_security_group.frontend.id]
   associate_public_ip_address = true
+  source_dest_check           = false
   key_name                    = local.resolved_key_name
   ebs_optimized               = true
   user_data = templatefile("${path.module}/../../../cloud-init/frontend.cloud-init.yaml", {

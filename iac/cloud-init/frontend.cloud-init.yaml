@@ -25,4 +25,8 @@ packages:
   - jq
 
 runcmd:
-  - echo "[Cloud-Init] Frontend node initialized successfully" > /var/log/cloud-init-status.log
+  - sysctl -w net.ipv4.ip_forward=1
+  - echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+  - iptables -P FORWARD ACCEPT
+  - iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
+  - echo "[Cloud-Init] Frontend node initialized successfully with NAT forwarding" > /var/log/cloud-init-status.log

@@ -9,7 +9,7 @@
     name:
       - python3-psycopg2
     state: present
-    update_cache: true
+    update_cache: false
 
 - name: Asegurar que el servicio PostgreSQL este iniciado y habilitado
   ansible.builtin.systemd:

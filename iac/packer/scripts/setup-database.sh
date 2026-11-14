@@ -14,12 +14,14 @@ export DEBIAN_FRONTEND=noninteractive
 
 # 1. Agregar repositorio oficial de PostgreSQL (PGDG)
 sudo install -d /etc/apt/keyrings
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/keyrings/postgresql.gpg --yes
+curl --retry 5 --retry-delay 2 --retry-connrefused -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /tmp/postgresql.asc
+sudo gpg --dearmor -o /etc/apt/keyrings/postgresql.gpg --yes /tmp/postgresql.asc
+rm -f /tmp/postgresql.asc
 
 echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
 
 sudo apt-get update -y
-sudo apt-get install -y postgresql-16 postgresql-contrib-16
+sudo apt-get install -y postgresql-16 postgresql-contrib-16 python3-psycopg2
 
 # 2. Configurar PostgreSQL para escuchar en todas las interfaces de red internas
 PG_CONF="/etc/postgresql/16/main/postgresql.conf"
