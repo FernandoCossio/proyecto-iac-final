@@ -14,6 +14,9 @@ export DEBIAN_FRONTEND=noninteractive
 
 # 1. Actualización de repositorios y paquetes base
 sudo apt-get update -y
+sudo apt-get install -y software-properties-common
+sudo add-apt-repository -y universe
+sudo apt-get update -y
 sudo apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
 # 2. Configurar Timezone en UTC
@@ -26,24 +29,25 @@ sudo apt-get install -y \
   curl \
   wget \
   git \
-  jq \
   unzip \
   tar \
   htop \
   ufw \
   gnupg \
   lsb-release \
-  software-properties-common \
-  python3 \
-  python3-pip
+  python3
 
-# 4. Configuración inicial del Firewall UFW
+# 4. Instalación de jq (binario estático oficial v1.7.1)
+sudo wget -q "https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64" -O /usr/local/bin/jq
+sudo chmod +x /usr/local/bin/jq
+
+# 5. Configuración inicial del Firewall UFW
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo ufw allow 22/tcp comment 'SSH para administracion/bastion'
 sudo ufw --force enable
 
-# 5. Instalación de Prometheus node_exporter para observabilidad
+# 6. Instalación de Prometheus node_exporter para observabilidad
 NODE_EXPORTER_VERSION="1.8.2"
 echo ">>> Instalando node_exporter v${NODE_EXPORTER_VERSION}..."
 
@@ -53,7 +57,7 @@ wget -q "https://github.com/prometheus/node_exporter/releases/download/v${NODE_E
 sudo tar -xzf "/tmp/${NODE_EXPORTER_TAR}" -C /tmp/
 sudo mv "/tmp/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64/node_exporter" /usr/local/bin/node_exporter
 sudo chmod +x /usr/local/bin/node_exporter
-rm -rf "/tmp/${NODE_EXPORTER_TAR}" "/tmp/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64"
+sudo rm -rf "/tmp/${NODE_EXPORTER_TAR}" "/tmp/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64"
 
 # Crear usuario de sistema dedicado para node_exporter
 if ! id "node_exporter" &>/dev/null; then

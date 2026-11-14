@@ -25,7 +25,7 @@ sudo rm -f /home/ubuntu/.ssh/authorized_keys || true
 
 # 4. Truncar y limpiar logs del sistema
 sudo find /var/log -type f -exec truncate --size 0 {} +
-sudo rm -f /var/log/*.gz /var/log/*.[0-9] /var/log/*-????????
+sudo find /var/log -type f \( -name "*.gz" -o -name "*.[0-9]" \) -delete 2>/dev/null || true
 
 # 5. Resetear cloud-init para que se re-ejecute en la nueva instancia
 if [ -d /var/lib/cloud ]; then
