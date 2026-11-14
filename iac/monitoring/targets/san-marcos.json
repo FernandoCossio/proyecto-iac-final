@@ -1,0 +1,12 @@
+[
+  {
+    "targets": ["node-exporter:9100"],
+    "labels": {
+      "tenant": "san-marcos",
+      "plan": "estandar",
+      "tier": "frontend",
+      "environment": "development",
+      "role": "web-bastion"
+    }
+  }
+]

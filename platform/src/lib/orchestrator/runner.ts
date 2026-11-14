@@ -156,6 +156,63 @@ function resolveSshKeyPaths(): { pemPath: string; pubPath: string } {
 }
 
 /**
+ * Registra o actualiza el target dinámico en Prometheus (File Service Discovery)
+ */
+function registerPrometheusTarget(
+  tenantId: string,
+  plan: string,
+  publicIp?: string,
+  isOnline = true
+): void {
+  try {
+    const targetsDir = path.join(REPO_ROOT, "iac", "monitoring", "targets");
+    if (!fs.existsSync(targetsDir)) {
+      fs.mkdirSync(targetsDir, { recursive: true });
+    }
+    const targetHost = isOnline
+      ? publicIp
+        ? `${publicIp}:9100`
+        : "node-exporter:9100"
+      : "node-exporter:9999";
+
+    const targetConfig = [
+      {
+        targets: [targetHost],
+        labels: {
+          tenant: tenantId,
+          plan: plan ? plan.toLowerCase() : "estandar",
+          tier: "frontend",
+          role: "web-bastion",
+        },
+      },
+    ];
+    fs.writeFileSync(
+      path.join(targetsDir, `${tenantId}.json`),
+      JSON.stringify(targetConfig, null, 2),
+      "utf-8"
+    );
+    console.log(`[Prometheus] Target ${tenantId} actualizado: ${targetHost}`);
+  } catch (err) {
+    console.warn(`[Prometheus] No se pudo registrar target para ${tenantId}:`, err);
+  }
+}
+
+/**
+ * Elimina el target de Prometheus cuando se destruye el tenant
+ */
+function removePrometheusTarget(tenantId: string): void {
+  try {
+    const targetFile = path.join(REPO_ROOT, "iac", "monitoring", "targets", `${tenantId}.json`);
+    if (fs.existsSync(targetFile)) {
+      fs.unlinkSync(targetFile);
+      console.log(`[Prometheus] Target ${tenantId} eliminado`);
+    }
+  } catch (err) {
+    console.warn(`[Prometheus] No se pudo eliminar target para ${tenantId}:`, err);
+  }
+}
+
+/**
  * Prepara el directorio de trabajo dedicado del tenant.
  */
 function prepareTenantFiles(
@@ -610,6 +667,7 @@ ansible-playbook -i /tenant/inventory-${tenantId}.ini site.yml -e @/tenant/extra
       data: { status: "ACTIVE" },
     });
 
+    registerPrometheusTarget(tenantId, tenantInput.plan, fePublicIp, true);
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
@@ -684,10 +742,12 @@ export async function suspendTenant(tenantId: string, jobId: string): Promise<bo
 
   if (stopRes.code === 0) {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "SUSPENDED" } });
+    registerPrometheusTarget(tenantId, tenant.plan || "estandar", "", false);
     sseBroadcaster.broadcast(tenantId, "status", { status: "SUSPENDED" });
     return true;
   } else {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "ACTIVE" } });
+    registerPrometheusTarget(tenantId, tenant.plan || "estandar", tenant.frontendPublicIp || "", true);
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE", error: stopRes.stderr });
     return false;
   }
@@ -764,10 +824,12 @@ export async function resumeTenant(tenantId: string, jobId: string): Promise<boo
         where: { id: tenantId },
         data: { frontendPublicIp: newPublicIp, status: "ACTIVE" },
       });
+      registerPrometheusTarget(tenantId, tenant.plan || "estandar", newPublicIp, true);
       sseBroadcaster.broadcast(tenantId, "ips", { frontendPublicIp: newPublicIp });
       sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
     } else {
       await prisma.tenant.update({ where: { id: tenantId }, data: { status: "ACTIVE" } });
+      registerPrometheusTarget(tenantId, tenant.plan || "estandar", "", true);
       sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
     }
 
@@ -836,10 +898,12 @@ export async function resumeTenant(tenantId: string, jobId: string): Promise<boo
       where: { id: tenantId },
       data: { frontendPublicIp: newPublicIp, status: "ACTIVE" },
     });
+    registerPrometheusTarget(tenantId, tenant.plan || "estandar", newPublicIp, true);
     sseBroadcaster.broadcast(tenantId, "ips", { frontendPublicIp: newPublicIp });
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
   } else {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "ACTIVE" } });
+    registerPrometheusTarget(tenantId, tenant.plan || "estandar", "", true);
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
   }
 
@@ -875,6 +939,7 @@ export async function destroyTenant(tenantId: string, jobId: string): Promise<bo
 
   if (destroyRes.code === 0) {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "TERMINATED" } });
+    removePrometheusTarget(tenantId);
     sseBroadcaster.broadcast(tenantId, "status", { status: "TERMINATED" });
     return true;
   } else {

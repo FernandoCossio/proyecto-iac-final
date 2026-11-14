@@ -4,6 +4,7 @@ import { ClassSchedule } from '../features/schedules/entities/class-schedule.ent
 import { Attendance } from '../features/attendances/entities/attendance.entity';
 import { AdminUser } from '../features/auth/entities/admin-user.entity';
 import { ActivityLog } from '../features/activity-logs/entities/activity-log.entity';
+import { Tenant } from '../features/tenants/entities/tenant.entity';
 
 export const APP_ENTITIES = [
   AcademicModule,
@@ -12,6 +13,7 @@ export const APP_ENTITIES = [
   Attendance,
   AdminUser,
   ActivityLog,
+  Tenant,
 ];
 
 export {
@@ -21,4 +23,5 @@ export {
   Attendance,
   AdminUser,
   ActivityLog,
+  Tenant,
 };
