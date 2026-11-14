@@ -33,9 +33,9 @@ locals {
       disk_size_gb  = 20
     }
     avanzado = {
-      frontend_type = "t3.small"
-      backend_type  = "t3.small"
-      db_type       = "t3.medium"
+      frontend_type = "c7i-flex.large"
+      backend_type  = "c7i-flex.large"
+      db_type       = "c7i-flex.large"
       disk_size_gb  = 30
     }
   }

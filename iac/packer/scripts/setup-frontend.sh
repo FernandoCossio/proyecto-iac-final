@@ -13,7 +13,7 @@ echo "=========================================================="
 export DEBIAN_FRONTEND=noninteractive
 
 # 1. Instalar Node.js 22 LTS desde NodeSource
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+curl --retry 5 --retry-delay 2 --retry-connrefused -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
 
 echo ">>> Node.js instalado: $(node -v) | npm: $(npm -v)"

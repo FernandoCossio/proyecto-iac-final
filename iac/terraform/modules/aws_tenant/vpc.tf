@@ -81,9 +81,14 @@ resource "aws_route_table_association" "frontend" {
   route_table_id = aws_route_table.public.id
 }
 
-# 7. Tabla de Ruteo Privada (Solo tráfico interno entre subredes de la VPC, sin NAT Gateway = $0)
+# 7. Tabla de Ruteo Privada (Ruta por defecto via Frontend Bastion NAT = $0)
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.tenant_vpc.id
+
+  route {
+    cidr_block           = "0.0.0.0/0"
+    network_interface_id = aws_instance.frontend.primary_network_interface_id
+  }
 
   tags = merge(local.common_tags, {
     Name = "${var.tenant_id}-rt-private-isolated"
