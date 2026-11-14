@@ -4,6 +4,7 @@
 # ==============================================================================
 
 source "azure-arm" "frontend" {
+  use_azure_cli_auth                = var.use_azure_cli_auth
   subscription_id                   = var.azure_subscription_id
   client_id                         = var.azure_client_id
   client_secret                     = var.azure_client_secret
@@ -39,5 +40,13 @@ build {
       "${path.root}/../scripts/setup-frontend.sh",
       "${path.root}/../scripts/cleanup.sh"
     ]
+  }
+
+  provisioner "shell" {
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+    inline = [
+      "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+    ]
+    inline_shebang = "/bin/sh -x"
   }
 }

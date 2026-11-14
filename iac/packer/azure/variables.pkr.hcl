@@ -11,6 +11,12 @@ packer {
   }
 }
 
+variable "use_azure_cli_auth" {
+  type        = bool
+  default     = true
+  description = "Indica si se utiliza la sesión activa de Azure CLI para autenticación."
+}
+
 variable "azure_subscription_id" {
   type        = string
   default     = env("ARM_SUBSCRIPTION_ID")
