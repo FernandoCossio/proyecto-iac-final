@@ -59,3 +59,17 @@ docs/
 !*.tfvars.example
 !*.tfvars.json.example
 
+# Terraform, OpenTofu & Pulumi State / Cache
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
+.tofu/
+.tofu.lock.hcl
+.pulumi/
+
+# Generated Ansible inventories
+iac/ansible/inventory/*.ini
+!iac/ansible/inventory/.gitkeep
+
