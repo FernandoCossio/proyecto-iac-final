@@ -14,6 +14,6 @@ db-node ansible_host=${db_private_ip} ansible_user=${ssh_user} ansible_ssh_priva
 
 [all:vars]
 tenant_id=${tenant_id}
-environment=${environment}
+app_env=${environment}
 ansible_python_interpreter=/usr/bin/python3
 ansible_ssh_extra_args='-o StrictHostKeyChecking=no'

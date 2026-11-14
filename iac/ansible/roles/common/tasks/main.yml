@@ -12,7 +12,6 @@
   ansible.builtin.apt:
     name:
       - curl
-      - jq
       - ufw
       - software-properties-common
       - ca-certificates
