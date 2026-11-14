@@ -1,0 +1,7 @@
+tenant_id            = "tenant-demo"
+environment          = "dev"
+aws_region           = "us-east-2"
+plan                 = "basico"
+admin_ssh_ip         = "0.0.0.0/0"
+ssh_key_name         = "iac-asistencia"
+ssh_private_key_path = "~/.ssh/iac-asistencia.pem"
