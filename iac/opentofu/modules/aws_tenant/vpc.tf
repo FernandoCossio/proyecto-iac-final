@@ -24,6 +24,7 @@ resource "aws_internet_gateway" "igw" {
 
 # 3. Subred Pública (Capa 1: Frontend Next.js + Bastion SSH)
 resource "aws_subnet" "frontend" {
+  #checkov:skip=CKV_AWS_130:Public subnet assigns public IP for ingress frontend VM
   vpc_id                  = aws_vpc.tenant_vpc.id
   cidr_block              = var.public_subnet_cidr
   availability_zone       = "${var.aws_region}a"

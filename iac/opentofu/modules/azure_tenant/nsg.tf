@@ -4,6 +4,7 @@
 
 # 1. NSG Frontend: Acceso Web y SSH de Administracion
 resource "azurerm_network_security_group" "frontend" {
+  #checkov:skip=CKV_AZURE_160:Frontend requires public HTTP ingress for web traffic
   name                = "nsg-${var.tenant_id}-frontend"
   resource_group_name = azurerm_resource_group.tenant_rg.name
   location            = azurerm_resource_group.tenant_rg.location

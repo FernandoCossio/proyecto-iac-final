@@ -47,6 +47,7 @@ resource "azurerm_public_ip" "frontend" {
 
 # 6. Interfaz de Red (NIC) Frontend
 resource "azurerm_network_interface" "frontend" {
+  #checkov:skip=CKV_AZURE_119:Frontend NIC intentionally configured with public IP for web entrypoint
   name                = "nic-${var.tenant_id}-frontend"
   resource_group_name = azurerm_resource_group.tenant_rg.name
   location            = azurerm_resource_group.tenant_rg.location
