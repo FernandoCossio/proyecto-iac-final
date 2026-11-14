@@ -52,6 +52,22 @@
     state: present
   become_user: postgres
 
+- name: Conceder privilegios sobre el schema public en asistencia_db
+  community.postgresql.postgresql_privs:
+    database: asistencia_db
+    roles: asistencia_app
+    type: schema
+    objs: public
+    privs: ALL
+    state: present
+  become_user: postgres
+
+- name: Asignar ownership del schema public a asistencia_app
+  community.postgresql.postgresql_query:
+    db: asistencia_db
+    query: "ALTER SCHEMA public OWNER TO asistencia_app;"
+  become_user: postgres
+
 - name: Desplegar configuracion de control de acceso pg_hba.conf
   ansible.builtin.template:
     src: pg_hba.conf.j2
