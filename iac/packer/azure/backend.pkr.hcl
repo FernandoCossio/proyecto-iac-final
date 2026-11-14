@@ -3,15 +3,6 @@
 # Componentes: Ubuntu 22.04 LTS Gen2, Node.js 22 LTS, PM2, Build Tools, node_exporter
 # ==============================================================================
 
-packer {
-  required_plugins {
-    azure = {
-      version = ">= 2.1.0"
-      source  = "github.com/hashicorp/azure"
-    }
-  }
-}
-
 source "azure-arm" "backend" {
   subscription_id                   = var.azure_subscription_id
   client_id                         = var.azure_client_id

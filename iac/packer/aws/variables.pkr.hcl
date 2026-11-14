@@ -2,6 +2,15 @@
 # Variables de entrada para AWS Packer Templates (Parametrización Estricta)
 # ==============================================================================
 
+packer {
+  required_plugins {
+    amazon = {
+      version = ">= 1.2.8"
+      source  = "github.com/hashicorp/amazon"
+    }
+  }
+}
+
 variable "aws_region" {
   type        = string
   description = "Región de AWS donde se construirá la AMI y se almacenará el snapshot."

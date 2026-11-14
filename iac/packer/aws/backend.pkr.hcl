@@ -3,15 +3,6 @@
 # Componentes: Ubuntu 22.04 LTS, Node.js 22 LTS, PM2, Build Tools, node_exporter
 # ==============================================================================
 
-packer {
-  required_plugins {
-    amazon = {
-      version = ">= 1.2.8"
-      source  = "github.com/hashicorp/amazon"
-    }
-  }
-}
-
 source "amazon-ebs" "backend" {
   ami_name      = "${var.image_prefix}-backend-${var.app_version}-{{timestamp}}"
   instance_type = var.instance_type

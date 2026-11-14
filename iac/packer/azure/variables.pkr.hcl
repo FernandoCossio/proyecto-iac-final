@@ -2,6 +2,15 @@
 # Variables de entrada para Azure Packer Templates (Parametrización Estricta)
 # ==============================================================================
 
+packer {
+  required_plugins {
+    azure = {
+      version = ">= 2.1.0"
+      source  = "github.com/hashicorp/azure"
+    }
+  }
+}
+
 variable "azure_subscription_id" {
   type        = string
   default     = env("ARM_SUBSCRIPTION_ID")

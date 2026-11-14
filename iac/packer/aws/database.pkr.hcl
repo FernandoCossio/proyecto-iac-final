@@ -3,15 +3,6 @@
 # Componentes: Ubuntu 22.04 LTS, PostgreSQL 16 PGDG, Tuning Base, node_exporter
 # ==============================================================================
 
-packer {
-  required_plugins {
-    amazon = {
-      version = ">= 1.2.8"
-      source  = "github.com/hashicorp/amazon"
-    }
-  }
-}
-
 source "amazon-ebs" "database" {
   ami_name      = "${var.image_prefix}-database-${var.app_version}-{{timestamp}}"
   instance_type = var.instance_type
