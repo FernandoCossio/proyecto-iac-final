@@ -1,0 +1,10 @@
+# Plantilla de ejemplo para variables de AWS en Packer
+# Copie este archivo como 'vars.pkrvars.hcl' y defina sus valores reales (ignorado por Git)
+
+aws_region             = "us-east-1"
+instance_type          = "t3.micro"
+image_prefix           = "asistencia"
+app_version            = "1.0.0"
+source_ami_owner       = "099720109477"
+source_ami_filter_name = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+ssh_username           = "ubuntu"

@@ -13,17 +13,17 @@ Este directorio contiene las plantillas HCL2 y scripts de aprovisionamiento para
 iac/packer/
 ├── README.md
 ├── aws/
-│   ├── frontend.pkr.hcl       # Builder amazon-ebs para frontend
-│   ├── backend.pkr.hcl        # Builder amazon-ebs para backend
-│   ├── database.pkr.hcl       # Builder amazon-ebs para database
-│   ├── variables.pkr.hcl      # Declaración de variables
-│   └── vars.pkrvars.hcl       # Variables por defecto para AWS (us-east-1, etc.)
+│   ├── frontend.pkr.hcl          # Builder amazon-ebs para frontend
+│   ├── backend.pkr.hcl           # Builder amazon-ebs para backend
+│   ├── database.pkr.hcl          # Builder amazon-ebs para database
+│   ├── variables.pkr.hcl         # Declaración de variables (sin defaults hardcodeados)
+│   └── vars.pkrvars.hcl.example  # Plantilla de ejemplo (el archivo real *.pkrvars.hcl está en .gitignore)
 ├── azure/
-│   ├── frontend.pkr.hcl       # Builder azure-arm para frontend
-│   ├── backend.pkr.hcl        # Builder azure-arm para backend
-│   ├── database.pkr.hcl       # Builder azure-arm para database
-│   ├── variables.pkr.hcl      # Declaración de variables
-│   └── vars.pkrvars.hcl       # Variables por defecto para Azure (eastus, etc.)
+│   ├── frontend.pkr.hcl          # Builder azure-arm para frontend
+│   ├── backend.pkr.hcl           # Builder azure-arm para backend
+│   ├── database.pkr.hcl          # Builder azure-arm para database
+│   ├── variables.pkr.hcl         # Declaración de variables (sin defaults hardcodeados)
+│   └── vars.pkrvars.hcl.example  # Plantilla de ejemplo (el archivo real *.pkrvars.hcl está en .gitignore)
 └── scripts/
     ├── setup-common.sh        # Aprovisionamiento base, herramientas y node_exporter
     ├── setup-frontend.sh      # Node.js 22, Nginx y configuración de proxy

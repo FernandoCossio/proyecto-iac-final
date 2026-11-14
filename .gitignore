@@ -50,3 +50,12 @@ docs/
 
 # Keys & certificates
 *.pem
+
+# IaC, Packer & Terraform Variables
+*.pkrvars.hcl
+!*.pkrvars.hcl.example
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.json.example
+

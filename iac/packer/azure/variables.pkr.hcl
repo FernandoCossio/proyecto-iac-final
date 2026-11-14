@@ -1,5 +1,5 @@
 # ==============================================================================
-# Variables de entrada para Azure Packer Templates
+# Variables de entrada para Azure Packer Templates (Parametrización Estricta)
 # ==============================================================================
 
 variable "azure_subscription_id" {
@@ -29,36 +29,30 @@ variable "azure_tenant_id" {
 
 variable "azure_resource_group" {
   type        = string
-  default     = "rg-asistencia-images"
   description = "Nombre del Resource Group donde se almacenarán las Managed Images generadas."
 }
 
 variable "azure_location" {
   type        = string
-  default     = "eastus"
-  description = "Región de Azure para el build y almacenamiento de la imagen (ej: eastus)."
+  description = "Región/Location de Azure para el build y almacenamiento de la imagen (ej: eastus, brazilsouth)."
 }
 
 variable "vm_size" {
   type        = string
-  default     = "Standard_B1s"
-  description = "Tamaño de la VM en Azure durante el proceso de build (compatible con Free Tier B1s)."
+  description = "Tamaño de la VM en Azure durante el proceso de build (ej: Standard_B1s)."
 }
 
 variable "image_prefix" {
   type        = string
-  default     = "asistencia"
-  description = "Prefijo para los nombres de las Managed Images creadas."
+  description = "Prefijo para los nombres de las Managed Images creadas (ej: asistencia)."
 }
 
 variable "app_version" {
   type        = string
-  default     = "1.0.0"
-  description = "Versión de la plataforma y del software instalado."
+  description = "Versión semántica de la plataforma y del software instalado."
 }
 
 variable "ssh_username" {
   type        = string
-  default     = "ubuntu"
-  description = "Usuario SSH temporal para aprovisionar la máquina."
+  description = "Usuario SSH temporal para aprovisionar la máquina (ej: ubuntu)."
 }
