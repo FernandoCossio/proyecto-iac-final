@@ -14,6 +14,7 @@ skip-path:
   - "node_modules"
   - "dist"
   - ".next"
+  - "docs"
 skip-check:
   # Omitidos justificadamente para disciplina de costo $0 en entorno academico:
   - CKV_AWS_126   # Monitoreo detallado incurre en costo CloudWatch mensual

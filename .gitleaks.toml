@@ -13,6 +13,7 @@ paths = [
   '''tofu\.tfvars\.example$''',
   '''Pulumi\.example\.yaml$''',
   '''specs/.*\.md$''',
+  '''docs/''',
   '''node_modules/''',
   '''\.next/''',
   '''dist/''',
