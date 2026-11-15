@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/passwords";
 import { signSessionToken } from "@/lib/auth/jwt";
 import { LoginSchema } from "@/lib/validators/tenant.schema";
+import { logAuditEvent } from "@/lib/audit/audit-logger";
 
 export async function POST(request: Request) {
   try {
@@ -33,11 +34,27 @@ export async function POST(request: Request) {
 
     const validPassword = await verifyPassword(password, user.passwordHash);
     if (!validPassword) {
+      logAuditEvent({
+        username,
+        action: "AUTH_LOGIN",
+        target: "Sistema / Login",
+        status: "FAILED",
+        details: "Contraseña incorrecta",
+      });
       return NextResponse.json(
         { error: "Credenciales incorrectas o usuario deshabilitado" },
         { status: 401 }
       );
     }
+
+    logAuditEvent({
+      username: user.username,
+      userRole: user.role,
+      action: "AUTH_LOGIN",
+      target: "Sistema / Login",
+      status: "SUCCESS",
+      details: `Inicio de sesión exitoso como ${user.fullName}`,
+    });
 
     // Generar token JWT de sesión
     const token = await signSessionToken({

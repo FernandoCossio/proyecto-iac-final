@@ -83,3 +83,16 @@ model JobLog {
   
   job       DeploymentJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
 }
+
+// 6. Registro de Auditoría de Operaciones en la Plataforma (RF-20)
+model AuditLog {
+  id        String   @id @default(uuid())
+  username  String   // Quién realizó la acción (ej: admin, Carlos U., Sistema)
+  userRole  String   @default("ADMIN")
+  action    String   // TENANT_CREATE, TENANT_SUSPEND, TENANT_RESUME, TENANT_DESTROY, TENANT_RETRY, TENANT_BACKUP, SECURITY_SCAN, AUTH_LOGIN, AUTH_LOGOUT
+  target    String   // Recurso afectado (ej: Tenant: soe, System: Scanners)
+  status    String   // SUCCESS, FAILED, WARNING
+  details   String?  // Descripción o metadatos JSON
+  ipAddress String?  // IP de origen del cliente
+  createdAt DateTime @default(now())
+}

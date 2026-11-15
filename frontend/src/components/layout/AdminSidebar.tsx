@@ -9,6 +9,8 @@ import {
   Users,
   FileSpreadsheet,
   ShieldCheck,
+  Server,
+  PlusCircle,
   X,
 } from 'lucide-react';
 import { LogoutConfirmButton } from '@/features/auth/components/LogoutConfirmButton';
@@ -79,6 +81,21 @@ const NAV_GROUPS: NavGroup[] = [
         label: 'Bitácora de Auditoría',
         href: '/admin/auditoria',
         icon: ShieldCheck,
+      },
+    ],
+  },
+  {
+    title: 'CONTROL PLANE (IAC)',
+    items: [
+      {
+        label: 'Plataforma de Tenants',
+        href: '/admin/tenants',
+        icon: Server,
+      },
+      {
+        label: 'Crear Tenant',
+        href: '/admin/tenants/crear',
+        icon: PlusCircle,
       },
     ],
   },

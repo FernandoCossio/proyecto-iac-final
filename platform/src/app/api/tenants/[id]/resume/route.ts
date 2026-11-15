@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resumeTenant } from "@/lib/orchestrator/runner";
+import { logAuditEvent } from "@/lib/audit/audit-logger";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,6 +23,14 @@ export async function POST(request: Request, { params }: RouteParams) {
         engine: "cli",
         status: "QUEUED",
       },
+    });
+
+    logAuditEvent({
+      username: "admin",
+      action: "TENANT_RESUME",
+      target: `Tenant: ${id}`,
+      status: "SUCCESS",
+      details: `Reanudación y encendido de instancias del tenant '${tenant.name}'`,
     });
 
     setImmediate(() => {

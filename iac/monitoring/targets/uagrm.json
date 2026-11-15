@@ -1,0 +1,14 @@
+[
+  {
+    "targets": [
+      "node-exporter:9100"
+    ],
+    "labels": {
+      "tenant": "uagrm",
+      "plan": "estandar",
+      "tier": "frontend",
+      "environment": "development",
+      "role": "web-bastion"
+    }
+  }
+]

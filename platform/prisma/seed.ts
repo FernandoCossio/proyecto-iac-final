@@ -17,7 +17,7 @@ async function main() {
       data: {
         username: "admin",
         email: "admin@tenantcontrol.local",
-        fullName: "Carlos U.",
+        fullName: "Administrador",
         role: "ADMIN",
         passwordHash,
       },

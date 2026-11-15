@@ -72,6 +72,11 @@ export default function AdminAuthenticatedLayout({
       crumbs.push({ label: 'Paso 1: Nómina' });
     } else if (pathname.includes('/admin/auditoria')) {
       crumbs.push({ label: 'Bitácora de Auditoría' });
+    } else if (pathname.includes('/admin/tenants/crear')) {
+      crumbs.push({ label: 'Plataforma de Tenants', href: '/admin/tenants' });
+      crumbs.push({ label: 'Nuevo Tenant' });
+    } else if (pathname.includes('/admin/tenants')) {
+      crumbs.push({ label: 'Plataforma de Tenants' });
     } else {
       crumbs.push({ label: 'Gestión' });
     }

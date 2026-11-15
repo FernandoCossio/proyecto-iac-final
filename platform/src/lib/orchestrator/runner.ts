@@ -156,6 +156,63 @@ function resolveSshKeyPaths(): { pemPath: string; pubPath: string } {
 }
 
 /**
+ * Registra o actualiza el target dinámico en Prometheus (File Service Discovery)
+ */
+function registerPrometheusTarget(
+  tenantId: string,
+  plan: string,
+  publicIp?: string,
+  isOnline = true
+): void {
+  try {
+    const targetsDir = path.join(REPO_ROOT, "iac", "monitoring", "targets");
+    if (!fs.existsSync(targetsDir)) {
+      fs.mkdirSync(targetsDir, { recursive: true });
+    }
+    const targetHost = isOnline
+      ? publicIp
+        ? `${publicIp}:9100`
+        : "node-exporter:9100"
+      : "node-exporter:9999";
+
+    const targetConfig = [
+      {
+        targets: [targetHost],
+        labels: {
+          tenant: tenantId,
+          plan: plan ? plan.toLowerCase() : "estandar",
+          tier: "frontend",
+          role: "web-bastion",
+        },
+      },
+    ];
+    fs.writeFileSync(
+      path.join(targetsDir, `${tenantId}.json`),
+      JSON.stringify(targetConfig, null, 2),
+      "utf-8"
+    );
+    console.log(`[Prometheus] Target ${tenantId} actualizado: ${targetHost}`);
+  } catch (err) {
+    console.warn(`[Prometheus] No se pudo registrar target para ${tenantId}:`, err);
+  }
+}
+
+/**
+ * Elimina el target de Prometheus cuando se destruye el tenant
+ */
+function removePrometheusTarget(tenantId: string): void {
+  try {
+    const targetFile = path.join(REPO_ROOT, "iac", "monitoring", "targets", `${tenantId}.json`);
+    if (fs.existsSync(targetFile)) {
+      fs.unlinkSync(targetFile);
+      console.log(`[Prometheus] Target ${tenantId} eliminado`);
+    }
+  } catch (err) {
+    console.warn(`[Prometheus] No se pudo eliminar target para ${tenantId}:`, err);
+  }
+}
+
+/**
  * Prepara el directorio de trabajo dedicado del tenant.
  */
 function prepareTenantFiles(
@@ -610,6 +667,7 @@ ansible-playbook -i /tenant/inventory-${tenantId}.ini site.yml -e @/tenant/extra
       data: { status: "ACTIVE" },
     });
 
+    registerPrometheusTarget(tenantId, tenantInput.planId, fePublicIp, true);
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
@@ -684,10 +742,12 @@ export async function suspendTenant(tenantId: string, jobId: string): Promise<bo
 
   if (stopRes.code === 0) {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "SUSPENDED" } });
+    registerPrometheusTarget(tenantId, tenant.planId || "estandar", "", false);
     sseBroadcaster.broadcast(tenantId, "status", { status: "SUSPENDED" });
     return true;
   } else {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "ACTIVE" } });
+    registerPrometheusTarget(tenantId, tenant.planId || "estandar", tenant.frontendPublicIp || "", true);
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE", error: stopRes.stderr });
     return false;
   }
@@ -764,10 +824,12 @@ export async function resumeTenant(tenantId: string, jobId: string): Promise<boo
         where: { id: tenantId },
         data: { frontendPublicIp: newPublicIp, status: "ACTIVE" },
       });
+      registerPrometheusTarget(tenantId, tenant.planId || "estandar", newPublicIp, true);
       sseBroadcaster.broadcast(tenantId, "ips", { frontendPublicIp: newPublicIp });
       sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
     } else {
       await prisma.tenant.update({ where: { id: tenantId }, data: { status: "ACTIVE" } });
+      registerPrometheusTarget(tenantId, tenant.planId || "estandar", "", true);
       sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
     }
 
@@ -836,10 +898,12 @@ export async function resumeTenant(tenantId: string, jobId: string): Promise<boo
       where: { id: tenantId },
       data: { frontendPublicIp: newPublicIp, status: "ACTIVE" },
     });
+    registerPrometheusTarget(tenantId, tenant.planId || "estandar", newPublicIp, true);
     sseBroadcaster.broadcast(tenantId, "ips", { frontendPublicIp: newPublicIp });
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
   } else {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "ACTIVE" } });
+    registerPrometheusTarget(tenantId, tenant.planId || "estandar", "", true);
     sseBroadcaster.broadcast(tenantId, "status", { status: "ACTIVE" });
   }
 
@@ -875,6 +939,7 @@ export async function destroyTenant(tenantId: string, jobId: string): Promise<bo
 
   if (destroyRes.code === 0) {
     await prisma.tenant.update({ where: { id: tenantId }, data: { status: "TERMINATED" } });
+    removePrometheusTarget(tenantId);
     sseBroadcaster.broadcast(tenantId, "status", { status: "TERMINATED" });
     return true;
   } else {
@@ -882,4 +947,135 @@ export async function destroyTenant(tenantId: string, jobId: string): Promise<bo
     sseBroadcaster.broadcast(tenantId, "status", { status: "FAILED", error: destroyRes.stderr });
     return false;
   }
+}
+
+/**
+ * Aplica la política de retención sobre los archivos de respaldo (manteniendo los maxFiles más recientes)
+ */
+function enforceBackupRetention(dir: string, maxFiles: number): void {
+  try {
+    if (!fs.existsSync(dir)) return;
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => f.endsWith(".sql.gz"))
+      .map((f) => {
+        const full = path.join(dir, f);
+        return { name: f, full, time: fs.statSync(full).mtimeMs };
+      })
+      .sort((a, b) => b.time - a.time); // Más nuevos primero
+
+    if (files.length > maxFiles) {
+      const toDelete = files.slice(maxFiles);
+      for (const item of toDelete) {
+        fs.unlinkSync(item.full);
+        console.log(`[Backup Retention] Eliminado respaldo antiguo: ${item.name}`);
+      }
+    }
+  } catch (err) {
+    console.warn("[Backup Retention] Error aplicando rotación de respaldos:", err);
+  }
+}
+
+/**
+ * Ejecuta el respaldo en caliente de la base de datos de un tenant y aplica la política de retención (7 copias).
+ */
+export async function runTenantBackup(
+  tenantId: string
+): Promise<{ success: boolean; filename?: string; error?: string }> {
+  const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+  if (!tenant) {
+    return { success: false, error: "Tenant no encontrado" };
+  }
+
+  const tenantDir = path.join(TENANTS_DATA_DIR, tenantId);
+  const inventoryFile = path.join(tenantDir, `inventory-${tenantId}.ini`);
+  if (!fs.existsSync(inventoryFile)) {
+    return { success: false, error: "No existe inventario de conexión para este tenant" };
+  }
+
+  // Directorio local de respaldos en la plataforma
+  const platformBackupsDir = path.join(REPO_ROOT, "platform", "backups", tenantId);
+  const tenantBackupsDir = path.join(tenantDir, "backups");
+  fs.mkdirSync(platformBackupsDir, { recursive: true });
+  fs.mkdirSync(tenantBackupsDir, { recursive: true });
+
+  const ansibleDir = path.join(REPO_ROOT, "iac", "ansible");
+  const { pemPath: sshKeyFile } = resolveSshKeyPaths();
+
+  // Script de ejecución en el contenedor
+  const runBackupScript = `#!/bin/sh
+set -e
+mkdir -p /root/.ssh
+cp /root/.ssh-src/iac-asistencia.pem /root/.ssh/iac-asistencia.pem
+chmod 600 /root/.ssh/iac-asistencia.pem
+mkdir -p /tenant/backups
+ansible-playbook -i /tenant/inventory-${tenantId}.ini backup.yml -e "tenant_id=${tenantId}"
+`.replace(/\r\n/g, "\n");
+
+  fs.writeFileSync(path.join(tenantDir, "run-backup.sh"), runBackupScript, {
+    encoding: "utf-8",
+    mode: 0o755,
+  });
+
+  const dockerArgs = [
+    "run",
+    "--rm",
+    "-v",
+    `${sshKeyFile}:/root/.ssh-src/iac-asistencia.pem:ro`,
+    "-v",
+    `${ansibleDir}:/ansible`,
+    "-v",
+    `${tenantDir}:/tenant`,
+    "-e",
+    "ANSIBLE_CONFIG=/ansible/ansible.cfg",
+    "-e",
+    "ANSIBLE_HOST_KEY_CHECKING=False",
+    "-w",
+    "/ansible",
+    "iac-ansible-controller:latest",
+    "sh",
+    "/tenant/run-backup.sh",
+  ];
+
+  // Crear deployment job para registro
+  const job = await prisma.deploymentJob.create({
+    data: {
+      tenantId,
+      operation: "BACKUP",
+      engine: tenant.iacEngine,
+      status: "RUNNING",
+    },
+  });
+
+  const res = await runProcess(tenantId, job.id, "BACKUP", "docker", dockerArgs, ansibleDir);
+
+  if (res.code !== 0) {
+    await prisma.deploymentJob.update({
+      where: { id: job.id },
+      data: { status: "FAILED", completedAt: new Date() },
+    });
+    return { success: false, error: res.stderr || "Error ejecutando playbook de respaldo" };
+  }
+
+  // Copiar archivos generados en tenantDir/backups hacia platformBackupsDir
+  const generatedFiles = fs.readdirSync(tenantBackupsDir).filter((f) => f.endsWith(".sql.gz"));
+  let newestFile = "";
+  for (const f of generatedFiles) {
+    const src = path.join(tenantBackupsDir, f);
+    const dest = path.join(platformBackupsDir, f);
+    if (!fs.existsSync(dest)) {
+      fs.copyFileSync(src, dest);
+    }
+    newestFile = f;
+  }
+
+  // Aplicar Política de Retención: Mantener máximo los 7 respaldos más recientes
+  enforceBackupRetention(platformBackupsDir, 7);
+
+  await prisma.deploymentJob.update({
+    where: { id: job.id },
+    data: { status: "COMPLETED", completedAt: new Date() },
+  });
+
+  return { success: true, filename: newestFile };
 }

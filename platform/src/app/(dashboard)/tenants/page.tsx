@@ -15,6 +15,8 @@ import {
   Cloud,
   CheckCircle2,
   Loader2,
+  Database,
+  Download,
 } from "lucide-react";
 
 interface TenantItem {
@@ -46,6 +48,62 @@ export default function TenantsListPage() {
 
   // Suspend/Resume loading state
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  // Backup modal state
+  const [backupModalOpen, setBackupModalOpen] = useState(false);
+  const [backupTenant, setBackupTenant] = useState<TenantItem | null>(null);
+  const [backupsList, setBackupsList] = useState<{ filename: string; sizeFormatted: string; createdAt: string }[]>([]);
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [creatingBackup, setCreatingBackup] = useState(false);
+
+  const fetchBackups = async (tenantId: string) => {
+    try {
+      setBackupLoading(true);
+      const res = await fetch(`/api/tenants/${tenantId}/backups`);
+      if (res.ok) {
+        const data = await res.json();
+        setBackupsList(data.backups || []);
+      }
+    } catch (err) {
+      console.error("Error fetching backups:", err);
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
+  const openBackupModal = (tenant: TenantItem) => {
+    setBackupTenant(tenant);
+    setBackupModalOpen(true);
+    fetchBackups(tenant.id);
+  };
+
+  const handleCreateBackup = async () => {
+    if (!backupTenant) return;
+    try {
+      setCreatingBackup(true);
+      const res = await fetch(`/api/tenants/${backupTenant.id}/backups`, { method: "POST" });
+      if (res.ok) {
+        await fetchBackups(backupTenant.id);
+      } else {
+        const err = await res.json();
+        alert(err.error || "Error generando respaldo");
+      }
+    } catch (err) {
+      console.error("Error creating backup:", err);
+    } finally {
+      setCreatingBackup(false);
+    }
+  };
+
+  const handleDeleteBackup = async (filename: string) => {
+    if (!backupTenant || !confirm(`¿Eliminar el respaldo '${filename}'?`)) return;
+    try {
+      await fetch(`/api/tenants/${backupTenant.id}/backups/${filename}`, { method: "DELETE" });
+      await fetchBackups(backupTenant.id);
+    } catch (err) {
+      console.error("Error deleting backup:", err);
+    }
+  };
 
   const fetchTenants = async () => {
     try {
@@ -305,6 +363,17 @@ export default function TenantsListPage() {
                             <Terminal className="h-3.5 w-3.5" />
                           </Link>
 
+                          {/* Manage Backups button */}
+                          {tenant.status !== "TERMINATED" && (
+                            <button
+                              onClick={() => openBackupModal(tenant)}
+                              className="flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 p-1.5 text-blue-700 hover:bg-blue-100"
+                              title="Gestionar respaldos de base de datos"
+                            >
+                              <Database className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+
                           {/* Suspend Button */}
                           {tenant.status === "ACTIVE" && (
                             <button
@@ -418,6 +487,120 @@ export default function TenantsListPage() {
                     Destruir Infraestructura ($0 Residual)
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Backup Management Modal */}
+      {backupModalOpen && backupTenant && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                  <Database className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Respaldos de Base de Datos</h3>
+                  <p className="text-xs text-slate-500 font-mono">
+                    Tenant: <span className="font-bold text-slate-700">{backupTenant.name}</span> ({backupTenant.id})
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setBackupModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-semibold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Acción Generar Respaldo */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+              <div>
+                <h4 className="text-xs font-bold text-slate-800">Generar Copia de Seguridad Inmediata</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Extrae dump PostgreSQL en caliente y lo comprime en formato .sql.gz.
+                </p>
+              </div>
+              <button
+                onClick={handleCreateBackup}
+                disabled={creatingBackup || backupTenant.status !== "ACTIVE"}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap"
+              >
+                {creatingBackup ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Respaldando...
+                  </>
+                ) : (
+                  <>
+                    <Database className="h-3.5 w-3.5" />
+                    Crear Respaldo Manual
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Política de Retención Info */}
+            <div className="rounded-lg bg-slate-50 border border-slate-200/80 p-3 text-[11px] text-slate-600 flex items-center justify-between">
+              <span className="font-semibold text-slate-700">Política de retención:</span>
+              <span className="text-slate-500">Se conservan automáticamente los <strong>7 respaldos</strong> más recientes por tenant.</span>
+            </div>
+
+            {/* Lista de Respaldos */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Historial de Copias Disponibles:</h4>
+              <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-lg">
+                {backupLoading ? (
+                  <div className="p-6 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    Cargando respaldos...
+                  </div>
+                ) : backupsList.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-400">
+                    No se han generado respaldos para este tenant todavía.
+                  </div>
+                ) : (
+                  backupsList.map((b, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 hover:bg-slate-50/80 transition text-xs">
+                      <div className="space-y-0.5">
+                        <p className="font-mono font-medium text-slate-800">{b.filename}</p>
+                        <p className="text-[11px] text-slate-400">
+                          {new Date(b.createdAt).toLocaleString()} · <span className="font-semibold text-slate-600">{b.sizeFormatted}</span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`/api/tenants/${backupTenant.id}/backups/${b.filename}`}
+                          download={b.filename}
+                          className="inline-flex items-center gap-1 rounded border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 shadow-xs"
+                        >
+                          <Download className="h-3 w-3 text-slate-500" />
+                          Descargar
+                        </a>
+                        <button
+                          onClick={() => handleDeleteBackup(b.filename)}
+                          className="rounded border border-red-200 bg-red-50 p-1 text-red-600 hover:bg-red-100"
+                          title="Eliminar este respaldo"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setBackupModalOpen(false)}
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Cerrar
               </button>
             </div>
           </div>

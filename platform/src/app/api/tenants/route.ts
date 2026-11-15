@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { CreateTenantSchema } from "@/lib/validators/tenant.schema";
 import { startDeploymentJob } from "@/lib/orchestrator/runner";
+import { logAuditEvent } from "@/lib/audit/audit-logger";
 
 export async function GET() {
   try {
@@ -74,6 +75,14 @@ export async function POST(request: Request) {
         engine: data.iacEngine,
         status: "QUEUED",
       },
+    });
+
+    logAuditEvent({
+      username: "admin",
+      action: "TENANT_CREATE",
+      target: `Tenant: ${tenant.id}`,
+      status: "SUCCESS",
+      details: `Aprovisionamiento de tenant '${tenant.name}' (${tenant.id}) en ${data.cloudProvider.toUpperCase()} (${data.region}) con plan ${data.planId}`,
     });
 
     // 3. Iniciar despliegue asíncrono en segundo plano (sin bloquear la respuesta HTTP)

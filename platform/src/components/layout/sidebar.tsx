@@ -9,6 +9,9 @@ import {
   Settings,
   LogOut,
   Send,
+  Activity,
+  ShieldCheck,
+  History,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -39,9 +42,27 @@ export function Sidebar() {
       icon: Layers,
       active: pathname.startsWith("/planes"),
     },
+    {
+      name: "Monitoreo",
+      href: "/monitoreo",
+      icon: Activity,
+      active: pathname.startsWith("/monitoreo"),
+    },
+    {
+      name: "Seguridad",
+      href: "/seguridad",
+      icon: ShieldCheck,
+      active: pathname.startsWith("/seguridad"),
+    },
   ];
 
   const navItemsAdmin = [
+    {
+      name: "Auditoría",
+      href: "/auditoria",
+      icon: History,
+      active: pathname.startsWith("/auditoria"),
+    },
     {
       name: "Configuración",
       href: "/configuracion",
@@ -132,16 +153,16 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* User Footer matching Carlos U. */}
+      {/* User Footer */}
       <div className="border-t border-slate-800/80 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white ring-2 ring-brand-500/30">
-              CU
+              AD
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-white">Carlos U.</span>
-              <span className="text-xs text-slate-400">Administrador</span>
+              <span className="text-sm font-semibold text-white">Administrador</span>
+              <span className="text-xs text-slate-400">Control Center</span>
             </div>
           </div>
           <button

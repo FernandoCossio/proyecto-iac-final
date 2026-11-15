@@ -1,0 +1,44 @@
+---
+# ==============================================================================
+# Playbook: backup.yml
+# Propósito: Respaldo en caliente de la base de datos PostgreSQL de un tenant
+#            a través del Bastion SSH con transferencia comprimida .sql.gz
+# ==============================================================================
+
+- name: Generar respaldo de base de datos PostgreSQL
+  hosts: database
+  gather_facts: false
+  become: true
+  vars:
+    backup_timestamp: "{{ lookup('pipe', 'date +%Y%m%d_%H%M%S') }}"
+    remote_backup_path: "/tmp/backup_{{ tenant_id }}_{{ backup_timestamp }}.sql.gz"
+    local_backup_dir: "/tenant/backups"
+
+  tasks:
+    - name: Asegurar que el servicio PostgreSQL esté en ejecución
+      ansible.builtin.systemd:
+        name: postgresql
+        state: started
+
+    - name: Ejecutar pg_dump de la base de datos asistencia_db y comprimir con gzip
+      ansible.builtin.shell: >
+        su - postgres -c "pg_dump -d asistencia_db -c --if-exists" | gzip > {{ remote_backup_path }}
+      args:
+        creates: "{{ remote_backup_path }}"
+
+    - name: Verificar que el archivo de respaldo no esté vacío
+      ansible.builtin.stat:
+        path: "{{ remote_backup_path }}"
+      register: backup_stat
+      failed_when: not backup_stat.stat.exists or backup_stat.stat.size == 0
+
+    - name: Descargar archivo de respaldo hacia el almacenamiento de la plataforma
+      ansible.builtin.fetch:
+        src: "{{ remote_backup_path }}"
+        dest: "{{ local_backup_dir }}/backup_{{ tenant_id }}_{{ backup_timestamp }}.sql.gz"
+        flat: true
+
+    - name: Eliminar respaldo temporal en el servidor de base de datos
+      ansible.builtin.file:
+        path: "{{ remote_backup_path }}"
+        state: absent

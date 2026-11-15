@@ -1,0 +1,20 @@
+groups:
+  - name: tenant_infrastructure_alerts
+    rules:
+      - alert: HostDown
+        expr: up{job="tenants-node-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instancia caída en tenant {{ $labels.tenant }}"
+          description: "La instancia {{ $labels.instance }} (tier: {{ $labels.tier }}) del tenant {{ $labels.tenant }} lleva más de 1 minuto sin responder."
+
+      - alert: HighCpuUsage
+        expr: (100 - (avg by (tenant, instance, tier) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)) > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alto uso de CPU en tenant {{ $labels.tenant }}"
+          description: "El uso de CPU supera el 85% en {{ $labels.instance }} (tier: {{ $labels.tier }}) durante más de 2 minutos."
