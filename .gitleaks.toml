@@ -18,7 +18,9 @@ paths = [
   '''\.next/''',
   '''dist/''',
   '''build/''',
-  '''\.terraform/'''
+  '''\.terraform/''',
+  '''iac/packer/''',
+  '''\.pkrvars\.hcl$'''
 ]
 regexes = [
   '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.\.\.'''

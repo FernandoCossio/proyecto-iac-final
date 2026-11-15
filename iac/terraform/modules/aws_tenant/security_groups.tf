@@ -38,6 +38,15 @@ resource "aws_security_group" "frontend" {
     cidr_blocks = [var.admin_ssh_ip]
   }
 
+  # Node Exporter Telemetría (Prometheus)
+  ingress {
+    description = "Node Exporter para telemetria Prometheus"
+    from_port   = 9100
+    to_port     = 9100
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Forwarding NAT desde VPC
   ingress {
     description = "Forwarding NAT desde subredes internas de la VPC"

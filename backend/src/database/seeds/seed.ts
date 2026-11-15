@@ -74,7 +74,7 @@ export async function runSeed(externalDataSource?: DataSource) {
   // 1. Limpieza segura de datos previos de desarrollo
   console.log('🧹 Limpiando datos previos de desarrollo...');
   await dataSource.query(
-    'TRUNCATE TABLE attendances, activity_logs, class_schedules, students, academic_modules, admin_users CASCADE',
+    'TRUNCATE TABLE tenants, attendances, activity_logs, class_schedules, students, academic_modules, admin_users CASCADE',
   );
 
   // 2. Crear Administrador por Defecto (RF-02)

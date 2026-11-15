@@ -1,0 +1,14 @@
+[
+  {
+    "targets": [
+      "node-exporter:9999"
+    ],
+    "labels": {
+      "tenant": "san-agustin",
+      "plan": "basico",
+      "tier": "frontend",
+      "environment": "production",
+      "role": "web-bastion"
+    }
+  }
+]
