@@ -15,6 +15,9 @@ export function Header() {
     if (pathname.includes("/consola")) return "Tenants / Consola de despliegue en vivo";
     if (pathname.startsWith("/tenants/")) return "Tenants / Detalle";
     if (pathname === "/planes") return "Plataforma / Planes";
+    if (pathname === "/monitoreo") return "Plataforma / Monitoreo & Observabilidad";
+    if (pathname === "/seguridad") return "Plataforma / Seguridad & Scanners";
+    if (pathname === "/auditoria") return "Administración / Bitácora de Auditoría";
     if (pathname === "/configuracion") return "Administración / Configuración";
     return "Tenant Control Center";
   };
@@ -36,7 +39,7 @@ export function Header() {
           <Plus className="h-4 w-4" />
         </Link>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 ring-1 ring-brand-200">
-          CU
+          AD
         </div>
       </div>
     </header>

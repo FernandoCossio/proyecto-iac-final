@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { suspendTenant } from "@/lib/orchestrator/runner";
+import { logAuditEvent } from "@/lib/audit/audit-logger";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,6 +23,14 @@ export async function POST(request: Request, { params }: RouteParams) {
         engine: "cli",
         status: "QUEUED",
       },
+    });
+
+    logAuditEvent({
+      username: "admin",
+      action: "TENANT_SUSPEND",
+      target: `Tenant: ${id}`,
+      status: "SUCCESS",
+      details: `Suspensión de instancias de tenant '${tenant.name}' para reducción a $0 costo de cómputo`,
     });
 
     setImmediate(() => {

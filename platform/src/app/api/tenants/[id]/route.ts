@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { prisma } from "@/lib/prisma";
 import { destroyTenant } from "@/lib/orchestrator/runner";
+import { logAuditEvent } from "@/lib/audit/audit-logger";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -60,6 +61,13 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       if (fs.existsSync(tenantDir)) {
         fs.rmSync(tenantDir, { recursive: true, force: true });
       }
+      logAuditEvent({
+        username: "admin",
+        action: "TENANT_PURGE",
+        target: `Tenant: ${id}`,
+        status: "SUCCESS",
+        details: `Depuración y borrado permanente de datos del tenant '${tenant.name}'`,
+      });
       return NextResponse.json({ message: "Registro de tenant depurado exitosamente" });
     }
 
@@ -71,6 +79,14 @@ export async function DELETE(request: Request, { params }: RouteParams) {
         engine: tenant.iacEngine,
         status: "QUEUED",
       },
+    });
+
+    logAuditEvent({
+      username: "admin",
+      action: "TENANT_DESTROY",
+      target: `Tenant: ${id}`,
+      status: "SUCCESS",
+      details: `Destrucción completa de infraestructura cloud del tenant '${tenant.name}' ($0 residual)`,
     });
 
     // Iniciar destrucción asíncrona
