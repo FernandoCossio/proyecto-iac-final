@@ -38,6 +38,11 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# Office & local spreadsheets
+*.xlsx
+*.xls
+*.csv
+
 # Agent configuration & skills (local only)
 .agents/
 
@@ -77,6 +82,12 @@ iac/pulumi/Pulumi.*.yaml
 # Generated Ansible inventories
 iac/ansible/inventory/*.ini
 !iac/ansible/inventory/.gitkeep
+
+# Generated Prometheus dynamic targets
+iac/monitoring/targets/*.json
+!iac/monitoring/targets/.gitkeep
+!iac/monitoring/targets/examples/
+!iac/monitoring/targets/examples/*.json
 
 # CloudFormation Parameters
 iac/cloudformation/parameters/*.json
