@@ -69,11 +69,16 @@ function runCommand(command: string, args: string[], cwd: string, stage: string)
   return new Promise((resolve) => {
     broadcastLog(stage, "system", `▶ Ejecutando [${stage}]: ${command} ${args.join(" ")}`);
 
+    const winGetLinks = path.join(process.env.LOCALAPPDATA || "", "Microsoft", "WinGet", "Links");
+    const pythonScripts = path.join(process.env.APPDATA || "", "Python", "Python313", "Scripts");
+    const customPath = [winGetLinks, pythonScripts, process.env.PATH].filter(Boolean).join(path.delimiter);
+
     const child = spawn(command, args, {
       cwd,
       shell: true,
       env: {
         ...process.env,
+        PATH: customPath,
       },
     });
 
